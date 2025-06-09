@@ -157,7 +157,7 @@ const CourseSelector: React.FC<{
       return (
         course.name.toLowerCase().includes(term) ||
         course.abbr.toLowerCase().includes(term) ||
-        (course.imo_no && course.imo_no.toLowerCase().includes(term))
+        (course.abbr && course.abbr.toLowerCase().includes(term))
       )
     })
   }, [searchTerm])
@@ -255,9 +255,9 @@ const CourseSelector: React.FC<{
                       <div className="text-gray-900 font-medium text-sm leading-tight">{course.name}</div>
                       <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                         <span className="font-mono bg-gray-100 px-2 py-1 rounded">{course.abbr}</span>
-                        {course.imo_no && (
+                        {course.abbr && (
                           <span className="font-mono bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                            IMO: {course.imo_no}
+                            IMO: {course.abbr}
                           </span>
                         )}
                       </div>
@@ -288,7 +288,7 @@ const CourseSelector: React.FC<{
                 <h4 className="font-semibold text-blue-900 text-sm leading-tight">{course.name}</h4>
                 <div className="flex items-center gap-3 text-blue-700 text-xs mt-2">
                   <span className="font-mono bg-blue-100 px-2 py-1 rounded">{course.abbr}</span>
-                  {course.imo_no && <span className="font-mono bg-white px-2 py-1 rounded">IMO: {course.imo_no}</span>}
+                  {course.abbr && <span className="font-mono bg-white px-2 py-1 rounded">ABBR: {course.abbr}</span>}
                 </div>
               </div>
               <button
@@ -633,7 +633,7 @@ export default function CourseQuote() {
         ...result,
         courses: result.courses.map((course) => ({
           ...course,
-          imo_no: course?.imo_no ?? null,
+          abbr: course?.abbr ?? null,
         })),
       }
       setRegistration(fixedResult)
@@ -681,8 +681,8 @@ export default function CourseQuote() {
     registration.courses.forEach((course, index) => {
       doc.setFontSize(12)
       doc.text(`${index + 1}. ${course.name}`, 20, yPosition)
-      if (course.imo_no) {
-        doc.text(`   IMO: ${course.imo_no}`, 20, yPosition + 10)
+      if (course.abbr) {
+        doc.text(`   IMO: ${course.abbr}`, 20, yPosition + 10)
         yPosition += 35
       } else {
         yPosition += 25
@@ -932,9 +932,9 @@ export default function CourseQuote() {
                         >
                           <h4 className="text-lg font-semibold text-blue-900 mb-2">{course.name}</h4>
                           <div className="flex items-center gap-4 text-blue-700 text-sm">
-                            {course.imo_no && (
+                            {course.abbr && (
                               <span className="font-mono bg-white px-3 py-1 rounded-lg border">
-                                IMO: {course.imo_no}
+                                IMO: {course.abbr}
                               </span>
                             )}
                           </div>
