@@ -29,7 +29,7 @@ export async function submitRegistration(formData: FormData): Promise<Registrati
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   try {
-    const response = await fetch("http://localhost:3000/api/send-email", {
+    const response = await fetch("https://pmts-qback.vercel.app/api/send-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

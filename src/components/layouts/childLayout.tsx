@@ -37,13 +37,6 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
       <main className="w-full relative">
         {publicRoute ? 
         <>
-          {/* 
-          <Navbar
-            currentPathname={currentPathname}
-            isLogged={isLogged}
-            profile={profile}
-          /> 
-          */}
         </>
         :
         <AdminNavbar 
