@@ -3,7 +3,6 @@ import Headers from "../meta/headers";
 import { UserProfile } from "../../context/userProfileContext";
 import Sidebar from "./sidebar";
 import AdminNavbar from "./adminNavbar";
-import Navbar from "./navbar";
 import Footer from "./footer";
 import WhatsappButton from "../buttons/whatsapp_button";
 // import AdminNavbar from "../ui/adminNavbar";

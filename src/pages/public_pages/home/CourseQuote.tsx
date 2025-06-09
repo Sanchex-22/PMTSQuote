@@ -20,7 +20,7 @@ interface RegistrationResult {
   }
 }
 
- const countryOptions = countryNationality.map(([country, nationality]) => ({
+ const countryOptions = countryNationality.map(([country, ]) => ({
     label: country, // El nombre del país es lo que se muestra
     value: country  // El valor que se guarda es el nombre del país
     // Si quisieras guardar la nacionalidad en vez del país: value: nationality

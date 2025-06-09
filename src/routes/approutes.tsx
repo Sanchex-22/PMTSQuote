@@ -15,7 +15,7 @@ import { authRoles } from "../diccionary/constants";
 import routesConfig from "./routesConfig";
 import useUserProfile from "../hook/userUserProfile";
 import Home from "../pages/public_pages/home/home";
-import ProjectsInfo from "../pages/public_pages/projects/projects_info";
+import CourseQuote from "../pages/public_pages/home/CourseQuote";
 
 // Tipado de usuario
 export interface User {
@@ -72,6 +72,19 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         }
       />
       <Route path="/home" element={<Navigate to="/" replace />} />
+      <Route path="/courses" 
+        element={          
+        <EnvolveLayout
+            title="PmtsQ"
+            description="PmtsQ"
+            isLogged={isLogged}
+            profile={profile}
+            currentPathname={pathnameLocation}
+            publicRoute={true}
+          >
+            <CourseQuote />
+          </EnvolveLayout>
+        }/>
       <Route
         path="/login"
         element={
