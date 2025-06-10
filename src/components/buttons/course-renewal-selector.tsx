@@ -144,7 +144,6 @@ const CourseRenewalSelector: React.FC<{
             <div className="max-h-60 overflow-y-auto">
               {renewableCourses.length > 0 ? (
                 renewableCourses.map((course) => {
-                  const price = getRenewalPrice(course)
                   return (
                     <label
                       key={course.id}
@@ -160,11 +159,6 @@ const CourseRenewalSelector: React.FC<{
                         <div className="text-gray-900 font-medium text-sm leading-tight">{course.name}</div>
                         <div className="flex items-center justify-between gap-3 text-xs text-gray-500 mt-1">
                           <span className="font-mono bg-gray-100 px-2 py-1 rounded">{course.abbr}</span>
-                          {price > 0 && (
-                            <span className="font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded">
-                              ${price} (Renovación)
-                            </span>
-                          )}
                         </div>
                       </div>
                     </label>
