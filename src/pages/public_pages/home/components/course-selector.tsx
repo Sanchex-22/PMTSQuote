@@ -158,11 +158,11 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
                               <span className="font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
                                 ${finalPrice}
                               </span>
-                              {govInfo.surcharge > 0 && (
+                              {/* {govInfo.surcharge > 0 && (
                                 <span className="text-xs text-orange-600 bg-orange-50 px-1 py-1 rounded">
-                                  Base: ${basePrice} +{govInfo.surcharge}%
+                                  Base: ${basePrice}
                                 </span>
-                              )}
+                              )} */}
                             </div>
                           )}
                         </div>
@@ -186,8 +186,6 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
       {selectedCoursesData.length > 0 && (
         <div className="space-y-3">
           {selectedCoursesData.map((course) => {
-            const basePrice = getCourseBasePrice(course, nationality)
-            const finalPrice = calculateCoursePrice(course, nationality, government)
             return (
               <div
                 key={course.id}
@@ -197,16 +195,6 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
                   <h4 className="font-semibold text-blue-900 text-sm leading-tight">{course.name}</h4>
                   <div className="flex items-center gap-3 text-blue-700 text-xs mt-2">
                     <span className="font-mono bg-blue-100 px-2 py-1 rounded">{course.abbr}</span>
-                    {basePrice > 0 && (
-                      <div className="flex items-center gap-1">
-                        <span className="font-semibold text-green-600 bg-white px-2 py-1 rounded">${finalPrice}</span>
-                        {govInfo.surcharge > 0 && (
-                          <span className="text-xs text-orange-600 bg-orange-50 px-1 py-1 rounded">
-                            Base: ${basePrice} +{govInfo.surcharge}%
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
                 <button

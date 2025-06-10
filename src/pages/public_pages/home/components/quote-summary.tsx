@@ -40,11 +40,6 @@ export const QuoteSummary: React.FC<QuoteSummaryProps> = ({
       <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
         <DollarIcon />
         Resumen de Cotización
-        {govInfo.surcharge > 0 && (
-          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-            +${govInfo.surcharge} recargo por gobierno
-          </span>
-        )}
       </h3>
 
       <div className="space-y-4 mb-4">
@@ -100,10 +95,6 @@ export const QuoteSummary: React.FC<QuoteSummaryProps> = ({
           <span className="text-lg font-semibold text-green-800">Total:</span>
           <span className="text-2xl font-bold text-green-800">${totalCost}</span>
         </div>
-        <p className="text-sm text-green-600 mt-1">
-          Precios para {isPanamanian(nationality) ? "residentes panameños" : "extranjeros"}
-          {govInfo.surcharge > 0 && ` (incluye $${govInfo.surcharge} recargo por gobierno)`}
-        </p>
       </div>
     </div>
   )

@@ -522,11 +522,6 @@ const calculateTotalCost = () => {
               <h1 className="text-4xl font-light text-gray-900 mb-3">¡Cotización Generada!</h1>
               <p className="text-lg text-gray-600 max-w-md mx-auto">
                 Tu cotización ha sido generada exitosamente
-                {govInfo?.surcharge > 0 && (
-                  <span className="block text-sm text-orange-600 mt-1">
-                    (Incluye {govInfo?.surcharge}% de recargo por gobierno)
-                  </span>
-                )}
               </p>
             </div>
 
@@ -553,10 +548,6 @@ const calculateTotalCost = () => {
                             <span className="text-orange-600">Renovaciones: ${registration.renewalCoursesTotal}</span>
                           )}
                         </div>
-                        <p className="text-sm text-green-600 mt-2">
-                          Precios para {isPanamanian(formData.nationality) ? "residentes panameños" : "extranjeros"}
-                          {govInfo?.surcharge > 0 && ` (incluye ${govInfo?.surcharge}% recargo)`}
-                        </p>
                       </div>
                     </div>
 
