@@ -253,10 +253,10 @@ const calculateTotalCost = () => {
     doc.text(`Costo Total: $${registration.totalCost}`, 20, yPosition + 20)
 
     // Surcharge info
-    if (govInfo.surcharge > 0) {
+    if (govInfo?.surcharge > 0) {
       doc.setFontSize(10)
       doc.setTextColor(255, 140, 0)
-      doc.text(`*Incluye ${govInfo.surcharge}% de recargo por gobierno/institución`, 20, yPosition + 35)
+      doc.text(`*Incluye ${govInfo?.surcharge}% de recargo por gobierno/institución`, 20, yPosition + 35)
     }
 
     // Footer
@@ -406,8 +406,8 @@ const calculateTotalCost = () => {
                       icon={<GlobeIcon />}
                     />
                     <p className="text-xs text-gray-500">
-                      {govInfo.surcharge > 0
-                        ? `Se aplicará un recargo del ${govInfo.surcharge}% sobre el precio base`
+                      {govInfo?.surcharge > 0
+                        ? `Se aplicará un recargo del ${govInfo?.surcharge}% sobre el precio base`
                         : "Sin recargo adicional"}
                     </p>
                   </div>
@@ -522,9 +522,9 @@ const calculateTotalCost = () => {
               <h1 className="text-4xl font-light text-gray-900 mb-3">¡Cotización Generada!</h1>
               <p className="text-lg text-gray-600 max-w-md mx-auto">
                 Tu cotización ha sido generada exitosamente
-                {govInfo.surcharge > 0 && (
+                {govInfo?.surcharge > 0 && (
                   <span className="block text-sm text-orange-600 mt-1">
-                    (Incluye {govInfo.surcharge}% de recargo por gobierno)
+                    (Incluye {govInfo?.surcharge}% de recargo por gobierno)
                   </span>
                 )}
               </p>
@@ -555,7 +555,7 @@ const calculateTotalCost = () => {
                         </div>
                         <p className="text-sm text-green-600 mt-2">
                           Precios para {isPanamanian(formData.nationality) ? "residentes panameños" : "extranjeros"}
-                          {govInfo.surcharge > 0 && ` (incluye ${govInfo.surcharge}% recargo)`}
+                          {govInfo?.surcharge > 0 && ` (incluye ${govInfo?.surcharge}% recargo)`}
                         </p>
                       </div>
                     </div>
