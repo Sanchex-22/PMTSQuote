@@ -21,16 +21,6 @@ export const QuoteSummary: React.FC<QuoteSummaryProps> = ({
   const selectedCoursesData = courses.filter((course) => selectedCourses.includes(String(course.id)))
   const selectedRenewalCoursesData = courses.filter((course) => selectedRenewalCourses.includes(String(course.id)))
 
-  const newCoursesTotal = selectedCoursesData.reduce((total, course) => {
-    return total + calculateCoursePrice(course, nationality, government)
-  }, 0)
-
-  const renewalCoursesTotal = selectedRenewalCoursesData.reduce((total, course) => {
-    return total + calculateRenewalPrice(course, nationality, government)
-  }, 0)
-
-  const totalCost = newCoursesTotal + renewalCoursesTotal
-
   if (selectedCourses.length === 0 && selectedRenewalCourses.length === 0) return null
 
   return (
