@@ -18,7 +18,7 @@ import {
   LoadingSpinner,
   BackIcon,
   CheckIcon,
-  DownloadIcon,
+  // DownloadIcon,
 } from "../../../components/icons/icons"
 
 // Importar utilidades
@@ -207,65 +207,65 @@ const calculateTotalCost = () => {
     setRegistration(null)
   }
 
-  const downloadPDF = async () => {
-    if (!registration) return
+  // const downloadPDF = async () => {
+  //   if (!registration) return
 
-    const { jsPDF } = await import("jspdf")
-    const doc = new jsPDF()
+  //   const { jsPDF } = await import("jspdf")
+  //   const doc = new jsPDF()
 
-    // Header
-    doc.setFontSize(24)
-    doc.setTextColor(59, 130, 246)
-    doc.text("Cotización de Cursos Marítimos", 20, 30)
+  //   // Header
+  //   doc.setFontSize(24)
+  //   doc.setTextColor(59, 130, 246)
+  //   doc.text("Cotización de Cursos Marítimos", 20, 30)
 
-    // Student info
-    doc.setFontSize(16)
-    doc.setTextColor(0, 0, 0)
-    doc.text("Información del Estudiante", 20, 50)
+  //   // Student info
+  //   doc.setFontSize(16)
+  //   doc.setTextColor(0, 0, 0)
+  //   doc.text("Información del Estudiante", 20, 50)
 
-    doc.setFontSize(12)
-    doc.text(`Nombre: ${registration.studentInfo.name} ${registration.studentInfo.lastName}`, 20, 65)
-    doc.text(`Documento: ${registration.studentInfo.document}`, 20, 75)
-    doc.text(`Nacionalidad: ${registration.studentInfo.nationality}`, 20, 85)
-    doc.text(`Email: ${registration.studentInfo.email}`, 20, 95)
-    doc.text(`Teléfono: ${registration.studentInfo.phone}`, 20, 105)
-    doc.text(`Gobierno/Institución: ${registration.government}`, 20, 115)
+  //   doc.setFontSize(12)
+  //   doc.text(`Nombre: ${registration.studentInfo.name} ${registration.studentInfo.lastName}`, 20, 65)
+  //   doc.text(`Documento: ${registration.studentInfo.document}`, 20, 75)
+  //   doc.text(`Nacionalidad: ${registration.studentInfo.nationality}`, 20, 85)
+  //   doc.text(`Email: ${registration.studentInfo.email}`, 20, 95)
+  //   doc.text(`Teléfono: ${registration.studentInfo.phone}`, 20, 105)
+  //   doc.text(`Gobierno/Institución: ${registration.government}`, 20, 115)
 
-    // Courses info
-    doc.setFontSize(16)
-    doc.text("Cursos Seleccionados", 20, 125)
+  //   // Courses info
+  //   doc.setFontSize(16)
+  //   doc.text("Cursos Seleccionados", 20, 125)
 
-    let yPosition = 140
-    registration.courses.forEach((course, index) => {
-      doc.setFontSize(12)
-      doc.text(`${index + 1}. ${course.name}`, 20, yPosition)
-      if (course.abbr) {
-        doc.text(`   Código: ${course.abbr}`, 20, yPosition + 10)
-        yPosition += 35
-      } else {
-        yPosition += 25
-      }
-    })
+  //   let yPosition = 140
+  //   registration.courses.forEach((course, index) => {
+  //     doc.setFontSize(12)
+  //     doc.text(`${index + 1}. ${course.name}`, 20, yPosition)
+  //     if (course.abbr) {
+  //       doc.text(`   Código: ${course.abbr}`, 20, yPosition + 10)
+  //       yPosition += 35
+  //     } else {
+  //       yPosition += 25
+  //     }
+  //   })
 
-    // Total cost
-    doc.setFontSize(16)
-    doc.setTextColor(0, 128, 0)
-    doc.text(`Costo Total: $${registration.totalCost}`, 20, yPosition + 20)
+  //   // Total cost
+  //   doc.setFontSize(16)
+  //   doc.setTextColor(0, 128, 0)
+  //   doc.text(`Costo Total: $${registration.totalCost}`, 20, yPosition + 20)
 
-    // Surcharge info
-    if (govInfo?.surcharge > 0) {
-      doc.setFontSize(10)
-      doc.setTextColor(255, 140, 0)
-      doc.text(`*Incluye ${govInfo?.surcharge}% de recargo por gobierno/institución`, 20, yPosition + 35)
-    }
+  //   // Surcharge info
+  //   if (govInfo?.surcharge > 0) {
+  //     doc.setFontSize(10)
+  //     doc.setTextColor(255, 140, 0)
+  //     doc.text(`*Incluye ${govInfo?.surcharge}% de recargo por gobierno/institución`, 20, yPosition + 35)
+  //   }
 
-    // Footer
-    doc.setFontSize(10)
-    doc.setTextColor(128, 128, 128)
-    doc.text(`Cotización generada el: ${new Date().toLocaleDateString()}`, 20, yPosition + 50)
+  //   // Footer
+  //   doc.setFontSize(10)
+  //   doc.setTextColor(128, 128, 128)
+  //   doc.text(`Cotización generada el: ${new Date().toLocaleDateString()}`, 20, yPosition + 50)
 
-    doc.save(`cotizacion-maritima-${registration.studentInfo.name}-${registration.studentInfo.lastName}.pdf`)
-  }
+  //   doc.save(`cotizacion-maritima-${registration.studentInfo.name}-${registration.studentInfo.lastName}.pdf`)
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
