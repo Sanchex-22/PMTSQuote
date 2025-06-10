@@ -1,6 +1,6 @@
 import type React from "react"
 import { courses } from "../../../../data/courses"
-import { calculateCoursePrice, calculateRenewalPrice, getGovernmentInfo, isPanamanian } from "../../../../utils/pricing"
+import { calculateCoursePrice, calculateRenewalPrice } from "../../../../utils/pricing"
 import { DollarIcon } from "../../../../components/icons/icons"
 
 
@@ -20,8 +20,6 @@ export const QuoteSummary: React.FC<QuoteSummaryProps> = ({
 }) => {
   const selectedCoursesData = courses.filter((course) => selectedCourses.includes(String(course.id)))
   const selectedRenewalCoursesData = courses.filter((course) => selectedRenewalCourses.includes(String(course.id)))
-
-  const govInfo = getGovernmentInfo(government)
 
   const newCoursesTotal = selectedCoursesData.reduce((total, course) => {
     return total + calculateCoursePrice(course, nationality, government)

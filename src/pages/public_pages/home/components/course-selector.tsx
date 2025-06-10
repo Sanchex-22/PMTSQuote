@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useMemo } from "react"
 import { GraduationIcon, SearchIcon, ClearIcon } from "../../../../components/icons/icons"
-import { getGovernmentInfo, getCourseBasePrice, calculateCoursePrice } from "../../../../utils/pricing"
+import { getCourseBasePrice, calculateCoursePrice } from "../../../../utils/pricing"
 import { courses } from "../../../../data/courses"
 
 interface CourseSelectorProps {
@@ -24,7 +24,6 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
 
-  const govInfo = getGovernmentInfo(government)
 
   // Filtrar cursos basado en el término de búsqueda
   const filteredCourses = useMemo(() => {
