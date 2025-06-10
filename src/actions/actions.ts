@@ -1,7 +1,7 @@
 "use server"
 
 import { courses, type Courses } from "../data/courses"
-
+const { VITE_API_URL } = import.meta.env
 interface FormData {
   name: string
   lastName: string
@@ -116,7 +116,7 @@ export async function submitRegistration(formData: FormData): Promise<Registrati
   }
 
   try {
-    const response = await fetch("https://pmts-qback-sanchex-22s-projects.vercel.app/api/send-email", {
+    const response = await fetch(VITE_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
