@@ -116,7 +116,7 @@ export async function submitRegistration(formData: FormData): Promise<Registrati
   }
 
   try {
-    const response = await fetch("https://pmts-qback.vercel.app/api/send-email", {
+    const response = await fetch("https://pmts-qback-sanchex-22s-projects.vercel.app/api/send-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
