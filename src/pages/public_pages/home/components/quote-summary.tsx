@@ -56,10 +56,6 @@ export const QuoteSummary: React.FC<QuoteSummaryProps> = ({
                 )
               })}
             </div>
-            <div className="flex justify-between items-center text-sm font-semibold text-green-800 mt-2 pl-4 border-t border-green-200 pt-2">
-              <span>Subtotal Cursos Nuevos:</span>
-              <span>${newCoursesTotal}</span>
-            </div>
           </div>
         )}
 
@@ -82,18 +78,11 @@ export const QuoteSummary: React.FC<QuoteSummaryProps> = ({
             </div>
             <div className="flex justify-between items-center text-sm font-semibold text-orange-800 mt-2 pl-4 border-t border-orange-200 pt-2">
               <span>Subtotal Renovaciones:</span>
-              <span>${renewalCoursesTotal}</span>
             </div>
           </div>
         )}
       </div>
 
-      <div className="border-t border-green-200 pt-3">
-        <div className="flex justify-between items-center">
-          <span className="text-lg font-semibold text-green-800">Total:</span>
-          <span className="text-2xl font-bold text-green-800">${totalCost}</span>
-        </div>
-      </div>
     </div>
   )
 }

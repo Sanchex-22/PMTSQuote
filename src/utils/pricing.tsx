@@ -40,9 +40,9 @@ export const getCourseBasePrice = (course: Courses, nationality: string): number
 // Función para obtener precio base de renovación
 export const getRenewalBasePrice = (course: Courses, nationality: string): number => {
   if (isPanamanian(nationality)) {
-    return course.price_panamanian_renewal || 0
+    return (course.price_panamanian_renewal || 0) / 2
   } else {
-    return course.price_foreign_renewal || 0
+    return (course.price_foreign_renewal || 0) / 2
   }
 }
 

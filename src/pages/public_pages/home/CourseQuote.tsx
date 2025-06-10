@@ -644,10 +644,10 @@ const calculateTotalCost = () => {
                         Nueva Cotización
                       </CustomButton>
 
-                      <CustomButton onClick={downloadPDF} variant="secondary">
+                      {/* <CustomButton onClick={downloadPDF} variant="secondary">
                         <DownloadIcon />
                         Descargar PDF
-                      </CustomButton>
+                      </CustomButton> */}
                     </div>
                   </>
                 )}
