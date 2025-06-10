@@ -1,7 +1,9 @@
 import type React from "react"
-import { getGovernmentInfo, calculateCoursePrice, calculateRenewalPrice, isPanamanian } from "../../../../utils/pricing"
 import { courses } from "../../../../data/courses"
+import { calculateCoursePrice, calculateRenewalPrice, getGovernmentInfo, isPanamanian } from "../../../../utils/pricing"
 import { DollarIcon } from "../../../../components/icons/icons"
+
+
 
 interface QuoteSummaryProps {
   selectedCourses: string[]
@@ -40,7 +42,7 @@ export const QuoteSummary: React.FC<QuoteSummaryProps> = ({
         Resumen de Cotización
         {govInfo.surcharge > 0 && (
           <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-            +{govInfo.surcharge}% recargo por gobierno
+            +${govInfo.surcharge} recargo por gobierno
           </span>
         )}
       </h3>
@@ -100,7 +102,7 @@ export const QuoteSummary: React.FC<QuoteSummaryProps> = ({
         </div>
         <p className="text-sm text-green-600 mt-1">
           Precios para {isPanamanian(nationality) ? "residentes panameños" : "extranjeros"}
-          {govInfo.surcharge > 0 && ` (incluye ${govInfo.surcharge}% recargo por gobierno)`}
+          {govInfo.surcharge > 0 && ` (incluye $${govInfo.surcharge} recargo por gobierno)`}
         </p>
       </div>
     </div>

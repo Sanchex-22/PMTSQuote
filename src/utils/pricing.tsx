@@ -3,9 +3,8 @@ import { Courses } from "../data/courses"
 
 // Gobiernos/países disponibles para selección
 export const governments = [
-  { value: "panama", label: "Panamá", flag: "🇵🇦", surcharge: 0 },
-  { value: "honduras", label: "Honduras", flag: "🇨🇴", surcharge: 20 },
-  { value: "other", label: "Otro país", flag: "🌍", surcharge: 20 },
+  { value: "panama", label: "Panamá", flag: "🇵🇦", surcharge: 5 },
+  { value: "honduras", label: "Honduras", flag: "🇭🇳", surcharge: 20 },
 ]
 
 // Función para obtener información del gobierno
@@ -24,9 +23,9 @@ export const isPanamanian = (nationality: string): boolean => {
   )
 }
 
-// Función para calcular precio con recargo
-export const calculatePriceWithSurcharge = (basePrice: number, surcharge: number): number => {
-  return Math.round(basePrice * (1 + surcharge / 100))
+// Función para calcular precio con recargo EN DÓLARES
+export const calculatePriceWithSurcharge = (basePrice: number, surchargeAmount: number): number => {
+  return basePrice + surchargeAmount
 }
 
 // Función para obtener precio base de curso nuevo

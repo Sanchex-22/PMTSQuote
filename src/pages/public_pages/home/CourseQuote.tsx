@@ -107,7 +107,7 @@ export default function CourseQuote() {
   }
 
   // Calcular el costo total
-  const calculateTotalCost = () => {
+const calculateTotalCost = () => {
     const selectedCoursesData = courses.filter((course) => formData.courses.includes(String(course.id)))
     const selectedRenewalCoursesData = courses.filter((course) => formData.renewalCourses.includes(String(course.id)))
 
@@ -121,6 +121,7 @@ export default function CourseQuote() {
 
     return newCoursesTotal + renewalCoursesTotal
   }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

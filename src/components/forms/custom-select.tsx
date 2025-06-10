@@ -69,7 +69,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, pla
                   <div className="text-gray-900">{option.label}</div>
                   {option.subtitle && <div className="text-sm text-gray-500 mt-1">{option.subtitle}</div>}
                   {option.surcharge !== undefined && option.surcharge > 0 && (
-                    <div className="text-xs text-orange-600 mt-1">+{option.surcharge}% recargo</div>
+                    <div className="text-xs text-orange-600 mt-1">+${option.surcharge} recargo</div>
                   )}
                 </div>
               </div>
