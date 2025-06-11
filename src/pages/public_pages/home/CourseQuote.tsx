@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
+import { useTranslation, Trans } from "react-i18next" // <--- CAMBIO: Importación correcta
 import { submitRegistration } from "../../../actions/actions"
 import type { Courses } from "../../../data/courses"
 import { courses } from "../../../data/courses"
@@ -37,6 +38,7 @@ import { CustomCheckbox } from "../../../components/forms/custom-checkbox"
 import { CustomButton } from "../../../components/forms/custom-button"
 import { CustomInput } from "../../../components/forms/customInput"
 import { CustomSelect } from "../../../components/forms/custom-select"
+import LanguageSwitcher from "../../../components/buttons/languageSwitcher"
 
 interface RegistrationResult {
   courses: Courses[]
@@ -61,6 +63,7 @@ const countryOptions = countryNationality.map(([country]) => ({
 }))
 
 export default function CourseQuote() {
+  const { t } = useTranslation() // <--- CAMBIO: Hook de traducción
   const [formData, setFormData] = useState({
     name: "",
     lastName: "",
@@ -86,76 +89,60 @@ export default function CourseQuote() {
       const newData = {
         ...prev,
         [field]: value,
-        // Limpiar cursos seleccionados cuando cambia el gobierno
         ...(field === "government" && { courses: [], renewalCourses: [] }),
       }
-
-      // Si se está modificando cursos nuevos, remover conflictos de renovaciones
       if (field === "courses" && Array.isArray(value)) {
         const conflictingRenewals = prev.renewalCourses.filter((renewalId) => !value.includes(renewalId))
         newData.renewalCourses = conflictingRenewals
       }
-
-      // Si se está modificando renovaciones, remover conflictos de cursos nuevos
       if (field === "renewalCourses" && Array.isArray(value)) {
         const conflictingNew = prev.courses.filter((courseId) => !value.includes(courseId))
         newData.courses = conflictingNew
       }
-
       return newData
     })
   }
 
-  // Calcular el costo total
-const calculateTotalCost = () => {
+  const calculateTotalCost = () => {
     const selectedCoursesData = courses.filter((course) => formData.courses.includes(String(course.id)))
     const selectedRenewalCoursesData = courses.filter((course) => formData.renewalCourses.includes(String(course.id)))
-
-    const newCoursesTotal = selectedCoursesData.reduce((total, course) => {
-      return total + calculateCoursePrice(course, formData.nationality, formData.government)
-    }, 0)
-
-    const renewalCoursesTotal = selectedRenewalCoursesData.reduce((total, course) => {
-      return total + calculateRenewalPrice(course, formData.nationality, formData.government)
-    }, 0)
-
+    const newCoursesTotal = selectedCoursesData.reduce(
+      (total, course) => total + calculateCoursePrice(course, formData.nationality, formData.government),
+      0,
+    )
+    const renewalCoursesTotal = selectedRenewalCoursesData.reduce(
+      (total, course) => total + calculateRenewalPrice(course, formData.nationality, formData.government),
+      0,
+    )
     return newCoursesTotal + renewalCoursesTotal
   }
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!formData.government) {
-      alert("Por favor, selecciona un gobierno/institución.")
+      alert(t("Please select a government/institution.")) // CAMBIO
       return
     }
-
     if (!formData.nationality) {
-      alert("Por favor, selecciona tu nacionalidad.")
+      alert(t("Please select your nationality.")) // CAMBIO
       return
     }
-
     if (formData.courses.length === 0 && formData.renewalCourses.length === 0) {
-      alert("Por favor, selecciona al menos un curso nuevo o de renovación.")
+      alert(t("Please select at least one new or renewal course.")) // CAMBIO
       return
     }
-
-    // Verificar que no hay conflictos (validación adicional)
     const conflicts = formData.courses.filter((courseId) => formData.renewalCourses.includes(courseId))
-
     if (conflicts.length > 0) {
-      alert("Error: Hay cursos seleccionados tanto como nuevos como para renovación. Por favor, revisa tu selección.")
+      alert(t("Error: There are courses selected as both new and for renewal. Please review your selection.")) // CAMBIO
       return
     }
-
     if (!captchaVerified) {
-      alert("Por favor, verifica el captcha antes de continuar.")
+      alert(t("Please verify the captcha before continuing.")) // CAMBIO
       return
     }
-
     if (!termsAccepted) {
-      alert("Debes aceptar los términos y condiciones para continuar.")
+      alert(t("You must accept the terms and conditions to continue.")) // CAMBIO
       return
     }
 
@@ -165,28 +152,22 @@ const calculateTotalCost = () => {
       const result = await submitRegistration(formData)
       const totalCost = calculateTotalCost()
       const selectedGov = governments.find((g) => g.value === formData.government)
-
       const selectedNewCoursesData = courses.filter((course) => formData.courses.includes(String(course.id)))
-      const selectedRenewalCoursesData = courses.filter((course) => formData.renewalCourses.includes(String(course.id)))
-
-      const newCoursesTotal = selectedNewCoursesData.reduce((total, course) => {
-        return total + calculateCoursePrice(course, formData.nationality, formData.government)
-      }, 0)
-
-      const renewalCoursesTotal = selectedRenewalCoursesData.reduce((total, course) => {
-        return total + calculateRenewalPrice(course, formData.nationality, formData.government)
-      }, 0)
-
+      const selectedRenewalCoursesData = courses.filter((course) =>
+        formData.renewalCourses.includes(String(course.id)),
+      )
+      const newCoursesTotal = selectedNewCoursesData.reduce(
+        (total, course) => total + calculateCoursePrice(course, formData.nationality, formData.government),
+        0,
+      )
+      const renewalCoursesTotal = selectedRenewalCoursesData.reduce(
+        (total, course) => total + calculateRenewalPrice(course, formData.nationality, formData.government),
+        0,
+      )
       const fixedResult: RegistrationResult = {
         ...result,
-        courses: selectedNewCoursesData.map((course) => ({
-          ...course,
-          abbr: course?.abbr ?? null,
-        })),
-        renewalCourses: selectedRenewalCoursesData.map((course) => ({
-          ...course,
-          abbr: course?.abbr ?? null,
-        })),
+        courses: selectedNewCoursesData.map((course) => ({ ...course, abbr: course?.abbr ?? null })),
+        renewalCourses: selectedRenewalCoursesData.map((course) => ({ ...course, abbr: course?.abbr ?? null })),
         totalCost,
         newCoursesTotal,
         renewalCoursesTotal,
@@ -196,7 +177,7 @@ const calculateTotalCost = () => {
       setShowConfirmation(true)
     } catch (error) {
       console.error("Error submitting registration:", error)
-      alert(error instanceof Error ? error.message : "Hubo un error al enviar tu cotización")
+      alert(error instanceof Error ? error.message : t("There was an error submitting your quote")) // CAMBIO
     } finally {
       setIsLoading(false)
     }
@@ -206,66 +187,6 @@ const calculateTotalCost = () => {
     setShowConfirmation(false)
     setRegistration(null)
   }
-
-  // const downloadPDF = async () => {
-  //   if (!registration) return
-
-  //   const { jsPDF } = await import("jspdf")
-  //   const doc = new jsPDF()
-
-  //   // Header
-  //   doc.setFontSize(24)
-  //   doc.setTextColor(59, 130, 246)
-  //   doc.text("Cotización de Cursos Marítimos", 20, 30)
-
-  //   // Student info
-  //   doc.setFontSize(16)
-  //   doc.setTextColor(0, 0, 0)
-  //   doc.text("Información del Estudiante", 20, 50)
-
-  //   doc.setFontSize(12)
-  //   doc.text(`Nombre: ${registration.studentInfo.name} ${registration.studentInfo.lastName}`, 20, 65)
-  //   doc.text(`Documento: ${registration.studentInfo.document}`, 20, 75)
-  //   doc.text(`Nacionalidad: ${registration.studentInfo.nationality}`, 20, 85)
-  //   doc.text(`Email: ${registration.studentInfo.email}`, 20, 95)
-  //   doc.text(`Teléfono: ${registration.studentInfo.phone}`, 20, 105)
-  //   doc.text(`Gobierno/Institución: ${registration.government}`, 20, 115)
-
-  //   // Courses info
-  //   doc.setFontSize(16)
-  //   doc.text("Cursos Seleccionados", 20, 125)
-
-  //   let yPosition = 140
-  //   registration.courses.forEach((course, index) => {
-  //     doc.setFontSize(12)
-  //     doc.text(`${index + 1}. ${course.name}`, 20, yPosition)
-  //     if (course.abbr) {
-  //       doc.text(`   Código: ${course.abbr}`, 20, yPosition + 10)
-  //       yPosition += 35
-  //     } else {
-  //       yPosition += 25
-  //     }
-  //   })
-
-  //   // Total cost
-  //   doc.setFontSize(16)
-  //   doc.setTextColor(0, 128, 0)
-  //   doc.text(`Costo Total: $${registration.totalCost}`, 20, yPosition + 20)
-
-  //   // Surcharge info
-  //   if (govInfo?.surcharge > 0) {
-  //     doc.setFontSize(10)
-  //     doc.setTextColor(255, 140, 0)
-  //     doc.text(`*Incluye ${govInfo?.surcharge}% de recargo por gobierno/institución`, 20, yPosition + 35)
-  //   }
-
-  //   // Footer
-  //   doc.setFontSize(10)
-  //   doc.setTextColor(128, 128, 128)
-  //   doc.text(`Cotización generada el: ${new Date().toLocaleDateString()}`, 20, yPosition + 50)
-
-  //   doc.save(`cotizacion-maritima-${registration.studentInfo.name}-${registration.studentInfo.lastName}.pdf`)
-  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
@@ -277,19 +198,21 @@ const calculateTotalCost = () => {
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-6 shadow-lg">
                 <img src={Images.logo || "/placeholder.svg"} alt="logo" width={70} height={70} />
               </div>
-              <h1 className="text-4xl font-light text-gray-900 mb-3">Cotización de Cursos</h1>
+              <h1 className="text-4xl font-light text-gray-900 mb-3">{t("Course Quote")}</h1>
               <p className="text-lg text-gray-600 max-w-md mx-auto">
-                Selecciona tu nacionalidad, gobierno/institución y los cursos marítimos de tu interés para obtener una
-                cotización
+                {t("Fill out the form to generate your quote")}
               </p>
+              <div className="flex justify-center mt-4">
+                <LanguageSwitcher />
+              </div>
             </div>
 
             {/* Form Card */}
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
               <div className="p-8">
                 <div className="mb-8">
-                  <h2 className="text-2xl font-light text-gray-900 mb-2">Información Personal</h2>
-                  <p className="text-gray-600">Completa tus datos para generar la cotización</p>
+                  <h2 className="text-2xl font-light text-gray-900 mb-2">{t("Personal Information")}</h2>
+                  <p className="text-gray-600">{t("Complete your details to generate the quote")}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -297,27 +220,26 @@ const calculateTotalCost = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre
+                        {t("Name")}
                       </label>
                       <CustomInput
                         id="name"
                         value={formData.name}
                         onChange={(value) => handleInputChange("name", value)}
-                        placeholder="Tu nombre"
+                        placeholder={t("Your name")}
                         required
                         icon={<UserIcon />}
                       />
                     </div>
-
                     <div className="space-y-2">
                       <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                        Apellido
+                        {t("Last Name")}
                       </label>
                       <CustomInput
                         id="lastName"
                         value={formData.lastName}
                         onChange={(value) => handleInputChange("lastName", value)}
-                        placeholder="Tu apellido"
+                        placeholder={t("Your last name")}
                         required
                       />
                     </div>
@@ -327,66 +249,66 @@ const calculateTotalCost = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label htmlFor="document" className="block text-sm font-medium text-gray-700 mb-2">
-                        Cédula o Pasaporte
+                        {t("ID or Passport")}
                       </label>
                       <CustomInput
                         id="document"
                         value={formData.document}
                         onChange={(value) => handleInputChange("document", value)}
-                        placeholder="Número de documento"
+                        placeholder={t("Document number")}
                         required
                         icon={<DocumentIcon />}
                       />
                     </div>
-
                     <div className="space-y-2">
                       <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nacionalidad <span className="text-red-500">*</span>
+                        {t("Nationality")} <span className="text-red-500">*</span>
                       </label>
                       <CustomSelect
                         value={formData.nationality}
                         onChange={(value) => handleInputChange("nationality", value)}
-                        placeholder="Selecciona tu nacionalidad"
+                        placeholder={t("Select your nationality")}
                         options={countryOptions}
                         icon={<GlobeIcon />}
                       />
                       <p className="text-xs text-gray-500">
-                        Determina si usas precios para panameños o extranjeros
+                        {t("Determines whether you use prices for Panamanians or foreigners")}
                         {formData.nationality && (
                           <span className="block mt-1 font-medium">
-                            {isPanamanian(formData.nationality) ? "✅ Precios panameños" : "🌍 Precios extranjeros"}
+                            {isPanamanian(formData.nationality)
+                              ? t("✅ Panamanian prices")
+                              : t("🌍 Foreigner prices")}
                           </span>
                         )}
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* Email and Phone */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        Correo Electrónico
+                        {t("Email")}
                       </label>
                       <CustomInput
                         id="email"
                         type="email"
                         value={formData.email}
                         onChange={(value) => handleInputChange("email", value)}
-                        placeholder="tu@email.com"
+                        placeholder={t("you@email.com")}
                         icon={<MailIcon />}
                       />
                     </div>
-
                     <div className="space-y-2">
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                        Teléfono
+                        {t("Phone")}
                       </label>
                       <CustomInput
                         id="phone"
                         type="tel"
                         value={formData.phone}
                         onChange={(value) => handleInputChange("phone", value)}
-                        placeholder="+1 (123) 456-7890"
+                        placeholder={t("+1 (123) 456-7890")}
                         required
                         icon={<PhoneIcon />}
                       />
@@ -396,29 +318,33 @@ const calculateTotalCost = () => {
                   {/* Government Selection */}
                   <div className="space-y-2">
                     <label htmlFor="government" className="block text-sm font-medium text-gray-700 mb-2">
-                      Gobierno/Institución <span className="text-red-500">*</span>
+                      {t("Government/Institution")} <span className="text-red-500">*</span>
                     </label>
                     <CustomSelect
                       value={formData.government}
                       onChange={(value) => handleInputChange("government", value)}
-                      placeholder="Selecciona el gobierno/institución"
+                      placeholder={t("Select the government/institution")}
                       options={governments}
                       icon={<GlobeIcon />}
                     />
                     <p className="text-xs text-gray-500">
                       {govInfo?.surcharge > 0
-                        ? `Se aplicará un recargo del ${govInfo?.surcharge}% sobre el precio base`
-                        : "Sin recargo adicional"}
+                        ? t("A surcharge of {{surcharge}}% will be applied to the base price", {
+                            surcharge: govInfo.surcharge,
+                          })
+                        : t("No additional surcharge")}
                     </p>
                   </div>
 
-                  {/* Course Selection - Only show if nationality and government are selected */}
+                  {/* Course Selection */}
                   {formData.nationality && formData.government && (
                     <>
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Cursos Marítimos Nuevos
-                          <span className="text-gray-500 font-normal ml-1">(Busca por nombre o abreviación)</span>
+                          {t("New Maritime Courses")}
+                          <span className="text-gray-500 font-normal ml-1">
+                            {t("(Search by name or abbreviation)")}
+                          </span>
                         </label>
                         <CourseSelector
                           selectedCourses={formData.courses}
@@ -431,8 +357,10 @@ const calculateTotalCost = () => {
 
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Renovación de Cursos
-                          <span className="text-gray-500 font-normal ml-1">(Solo cursos que permiten renovación)</span>
+                          {t("Course Renewal")}
+                          <span className="text-gray-500 font-normal ml-1">
+                            {t("(Only courses that allow renewal)")}
+                          </span>
                         </label>
                         <CourseRenewalSelector
                           selectedCourses={formData.renewalCourses}
@@ -457,7 +385,9 @@ const calculateTotalCost = () => {
 
                   {/* CAPTCHA */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Verificación CAPTCHA</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t("CAPTCHA Verification")}
+                    </label>
                     <CustomCaptcha verified={captchaVerified} onVerify={setCaptchaVerified} />
                   </div>
 
@@ -469,16 +399,16 @@ const calculateTotalCost = () => {
                       onChange={setTermsAccepted}
                       required
                       label={
-                        <span>
-                          Acepto los{" "}
+                        <Trans i18nKey="I accept the <1>terms and conditions</1> and the <2>privacy policy</2>">
+                          I accept the{" "}
                           <a href="#" className="text-blue-600 hover:underline">
-                            términos y condiciones
+                            terms and conditions
                           </a>{" "}
-                          y la{" "}
+                          and the{" "}
                           <a href="#" className="text-blue-600 hover:underline">
-                            política de privacidad
+                            privacy policy
                           </a>
-                        </span>
+                        </Trans>
                       }
                     />
                   </div>
@@ -500,10 +430,10 @@ const calculateTotalCost = () => {
                       {isLoading ? (
                         <>
                           <LoadingSpinner />
-                          Generando cotización...
+                          {t("Generating quote...")}
                         </>
                       ) : (
-                        "Generar Cotización"
+                        t("Generate Quote")
                       )}
                     </CustomButton>
                   </div>
@@ -519,9 +449,9 @@ const calculateTotalCost = () => {
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-6 shadow-lg text-white">
                 <CheckIcon />
               </div>
-              <h1 className="text-4xl font-light text-gray-900 mb-3">¡Cotización Generada!</h1>
+              <h1 className="text-4xl font-light text-gray-900 mb-3">{t("Quote Generated!")}</h1>
               <p className="text-lg text-gray-600 max-w-md mx-auto">
-                Tu cotización ha sido generada exitosamente
+                {t("Your quote has been generated successfully")}
               </p>
             </div>
 
@@ -529,8 +459,8 @@ const calculateTotalCost = () => {
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
               <div className="p-8">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-light text-green-700 mb-2">Cotización Confirmada</h2>
-                  <p className="text-gray-600">Resumen de tu cotización de cursos marítimos</p>
+                  <h2 className="text-2xl font-light text-green-700 mb-2">{t("Quote Confirmed")}</h2>
+                  <p className="text-gray-600">{t("Summary of your maritime course quote")}</p>
                 </div>
 
                 {registration && (
@@ -538,14 +468,22 @@ const calculateTotalCost = () => {
                     {/* Total Cost Highlight */}
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200 mb-6">
                       <div className="text-center">
-                        <h3 className="text-lg font-semibold text-green-800 mb-2">Costo Total</h3>
+                        <h3 className="text-lg font-semibold text-green-800 mb-2">{t("Total Cost")}</h3>
                         <div className="text-4xl font-bold text-green-800">${registration.totalCost}</div>
                         <div className="flex justify-center gap-4 mt-3 text-sm">
                           {registration.newCoursesTotal > 0 && (
-                            <span className="text-green-600">Nuevos: ${registration.newCoursesTotal}</span>
+                            <span className="text-green-600">
+                              {t("New: ${{newCoursesTotal}}", {
+                                newCoursesTotal: registration.newCoursesTotal,
+                              })}
+                            </span>
                           )}
                           {registration.renewalCoursesTotal > 0 && (
-                            <span className="text-orange-600">Renovaciones: ${registration.renewalCoursesTotal}</span>
+                            <span className="text-orange-600">
+                              {t("Renewals: ${{renewalCoursesTotal}}", {
+                                renewalCoursesTotal: registration.renewalCoursesTotal,
+                              })}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -553,10 +491,9 @@ const calculateTotalCost = () => {
 
                     {/* Selected Courses */}
                     <div className="space-y-4 mb-6">
-                      {/* Cursos Nuevos */}
                       {registration.courses.length > 0 && (
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Cursos Nuevos:</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("New Courses:")}</h3>
                           <div className="space-y-3">
                             {registration.courses.map((course, index) => (
                               <div
@@ -567,7 +504,7 @@ const calculateTotalCost = () => {
                                 <div className="flex items-center gap-4 text-blue-700 text-sm">
                                   {course.abbr && (
                                     <span className="font-mono bg-white px-3 py-1 rounded-lg border">
-                                      Código: {course.abbr}
+                                      {t("Code: {{abbr}}", { abbr: course.abbr })}
                                     </span>
                                   )}
                                 </div>
@@ -576,11 +513,9 @@ const calculateTotalCost = () => {
                           </div>
                         </div>
                       )}
-
-                      {/* Cursos de Renovación */}
                       {registration.renewalCourses.length > 0 && (
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Renovaciones:</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("Renewals:")}</h3>
                           <div className="space-y-3">
                             {registration.renewalCourses.map((course, index) => (
                               <div
@@ -588,12 +523,12 @@ const calculateTotalCost = () => {
                                 className="bg-gradient-to-r from-orange-50 to-amber-50 p-6 rounded-2xl border border-orange-100"
                               >
                                 <h4 className="text-lg font-semibold text-orange-900 mb-2">
-                                  {course.name} <span className="text-sm text-orange-600">(Renovación)</span>
+                                  {course.name} <span className="text-sm text-orange-600">{t("(Renewal)")}</span>
                                 </h4>
                                 <div className="flex items-center gap-4 text-orange-700 text-sm">
                                   {course.abbr && (
                                     <span className="font-mono bg-white px-3 py-1 rounded-lg border">
-                                      Código: {course.abbr}
+                                      {t("Code: {{abbr}}", { abbr: course.abbr })}
                                     </span>
                                   )}
                                 </div>
@@ -606,32 +541,32 @@ const calculateTotalCost = () => {
 
                     {/* Student Info */}
                     <div className="bg-gray-50 p-6 rounded-2xl mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-4">Datos del estudiante:</h4>
+                      <h4 className="font-semibold text-gray-900 mb-4">{t("Student Details:")}</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                         <div>
-                          <span className="font-medium text-gray-900">Nombre completo:</span>
+                          <span className="font-medium text-gray-900">{t("Full name:")}</span>
                           <p>
                             {registration.studentInfo.name} {registration.studentInfo.lastName}
                           </p>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-900">Documento:</span>
+                          <span className="font-medium text-gray-900">{t("Document:")}</span>
                           <p>{registration.studentInfo.document}</p>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-900">Nacionalidad:</span>
+                          <span className="font-medium text-gray-900">{t("Nationality:")}</span>
                           <p>{registration.studentInfo.nationality}</p>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-900">Email:</span>
+                          <span className="font-medium text-gray-900">{t("Email:")}</span>
                           <p>{registration.studentInfo.email}</p>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-900">Teléfono:</span>
+                          <span className="font-medium text-gray-900">{t("Phone:")}</span>
                           <p>{registration.studentInfo.phone}</p>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-900">Gobierno/Institución:</span>
+                          <span className="font-medium text-gray-900">{t("Government/Institution:")}</span>
                           <p>{registration.government}</p>
                         </div>
                       </div>
@@ -641,13 +576,14 @@ const calculateTotalCost = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <CustomButton onClick={handleBack} variant="primary" className="bg-gray-600 hover:bg-gray-700">
                         <BackIcon />
-                        Nueva Cotización
+                        {t("New Quote")}
                       </CustomButton>
-
-                      {/* <CustomButton onClick={downloadPDF} variant="secondary">
+                      {/*
+                      <CustomButton onClick={downloadPDF} variant="secondary">
                         <DownloadIcon />
-                        Descargar PDF
-                      </CustomButton> */}
+                        {t("Download PDF")}
+                      </CustomButton>
+                      */}
                     </div>
                   </>
                 )}
