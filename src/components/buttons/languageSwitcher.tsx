@@ -32,8 +32,8 @@ const LanguageSwitcher = () => {
         `}
         aria-label="Switch to English"
       >
-        <span className="text-sm">🇺🇸</span>
-        <span>EN</span>
+        <span className="text-sm">🇪🇸</span>
+        <span>ES</span>
       </button>
 
       <button
@@ -49,8 +49,8 @@ const LanguageSwitcher = () => {
         `}
         aria-label="Cambiar a Español"
       >
-        <span className="text-sm">🇪🇸</span>
-        <span>ES</span>
+        <span className="text-sm">🇺🇸</span>
+        <span>EN</span>
       </button>
     </div>
   )

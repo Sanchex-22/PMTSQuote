@@ -4,7 +4,6 @@ import { UserProfile } from "../../context/userProfileContext";
 import Sidebar from "./sidebar";
 import AdminNavbar from "./adminNavbar";
 import Footer from "./footer";
-import WhatsappButton from "../buttons/whatsapp_button";
 import Navbar from "./navbar";
 // import AdminNavbar from "../ui/adminNavbar";
 interface CurrentPathname {
@@ -38,7 +37,11 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
       <main className="w-full relative">
         {publicRoute ? 
         <>
-        <Navbar/>
+        <Navbar
+          profile={profile}
+          currentPathname={currentPathname}
+          isLogged={isLogged}
+        />
         </>
         :
         <AdminNavbar 

@@ -2,10 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fondo al hacer scroll */
-.scrolled {
-  background-color: rgba(0, 0, 0, 0.457);
-  backdrop-filter: blur(10px);
-}
 
 /* Texto negro por defecto */
