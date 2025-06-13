@@ -22,7 +22,6 @@ import {
   // DownloadIcon,
 } from "../../../components/icons/icons"
 
-// Importar utilidades
 import {
   governments,
   getGovernmentInfo,
@@ -38,7 +37,6 @@ import { CustomCheckbox } from "../../../components/forms/custom-checkbox"
 import { CustomButton } from "../../../components/forms/custom-button"
 import { CustomInput } from "../../../components/forms/customInput"
 import { CustomSelect } from "../../../components/forms/custom-select"
-import LanguageSwitcher from "../../../components/buttons/languageSwitcher"
 
 interface RegistrationResult {
   courses: Courses[]
@@ -202,9 +200,6 @@ export default function CourseQuote() {
               <p className="text-lg text-gray-600 max-w-md mx-auto">
                 {t("Fill out the form to generate your quote")}
               </p>
-              <div className="flex justify-center mt-4">
-                <LanguageSwitcher />
-              </div>
             </div>
 
             {/* Form Card */}

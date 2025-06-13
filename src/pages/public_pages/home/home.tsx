@@ -2,7 +2,6 @@
 
 import Images from "../../../assets";
 import { useTranslation } from "react-i18next";
-import LanguageSwitcher from "../../../components/buttons/languageSwitcher";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -15,15 +14,12 @@ export default function Home() {
             <img src={Images.logo} alt="logo" width={70} height={70} />
           </div>
           <h1 className="text-4xl font-light text-gray-900 mb-3">
-            {t('Ayudanos a Ayudarte')}
+            {t('Help Us Help You')}
           </h1>
           <p className="text-lg text-gray-600 max-w-md mx-auto">
-            {t('Que informacion necesitas?')}
+            {t('What information do you need?')}
           </p>
 
-          <div className="flex justify-center">
-             <LanguageSwitcher />
-          </div>
         </div>
 
         {/* Form Card */}
@@ -33,20 +29,25 @@ export default function Home() {
               href="/courses"
               className="block bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100 text-lg font-semibold text-blue-900 w-full h-full hover:scale-[98%] transition-transform duration-200 ease-in-out"
             >
-              { t('Cursos') }
+              {t("Courses")}
             </a>
+
+            {/* 
             <a
               href="#"
               className="block bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100 text-lg font-semibold text-blue-900 w-full h-full hover:scale-[98%] transition-transform duration-200 ease-in-out"
             >
-              { t('Tramite de Licencia') }
+              {t("License Procedure")}
             </a>
+
             <a
               href="#"
               className="block bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100 text-lg font-semibold text-blue-900 w-full h-full hover:scale-[98%] transition-transform duration-200 ease-in-out"
             >
               { t('Liberia COC') }
-            </a>
+            </a> 
+            */}
+
           </div>
         </div>
       </div>

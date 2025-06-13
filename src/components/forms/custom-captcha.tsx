@@ -1,5 +1,6 @@
 "use client"
 
+import { t } from "i18next"
 import type React from "react"
 import { useState, useRef } from "react"
 
@@ -126,7 +127,7 @@ export const CustomCaptcha: React.FC<CustomCaptchaProps> = ({ verified, onVerify
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ingresa el código"
+          placeholder={t("Enter Code")}
           className="flex-1 h-12 px-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <button
@@ -134,12 +135,12 @@ export const CustomCaptcha: React.FC<CustomCaptchaProps> = ({ verified, onVerify
           onClick={verifyCaptcha}
           className="h-12 px-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
         >
-          Verificar
+          {t("Verify")}
         </button>
       </div>
 
-      {error && <p className="text-sm text-red-500">Código incorrecto. Intenta de nuevo.</p>}
-      {verified && <p className="text-sm text-green-500">¡Verificación exitosa!</p>}
+      {error && <p className="text-sm text-red-500">{t("Incorrect code. Please try again.")}</p>}
+      {verified && <p className="text-sm text-green-500">{t("Verification successful!")}</p>}
     </div>
   )
 }

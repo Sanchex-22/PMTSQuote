@@ -5,6 +5,7 @@ import Sidebar from "./sidebar";
 import AdminNavbar from "./adminNavbar";
 import Footer from "./footer";
 import WhatsappButton from "../buttons/whatsapp_button";
+import Navbar from "./navbar";
 // import AdminNavbar from "../ui/adminNavbar";
 interface CurrentPathname {
   name: string;
@@ -37,6 +38,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
       <main className="w-full relative">
         {publicRoute ? 
         <>
+        <Navbar/>
         </>
         :
         <AdminNavbar 
@@ -46,7 +48,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         }
         <Sidebar></Sidebar>
         <div className="page-content">{children}</div>
-        <WhatsappButton/>
+        {/* <WhatsappButton/> */}
       </main>
       {publicRoute ? <Footer/>:<></>}
     </>

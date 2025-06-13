@@ -1,6 +1,12 @@
 // src/locales/es.ts
 const es = {
   translation: {
+    "Ayudanos a Ayudarte": "Help Us Help You",
+    "Que informacion necesitas?": "What information do you need?",
+    "Cursos": "Courses",
+    "Tramite de Licencia": "License Procedure",
+    "Liberia COC": "Liberia COC",
+
     // Header
     "Cotización de Cursos": "Cotización de Cursos",
     "Selecciona tu nacionalidad, gobierno/institución y los cursos marítimos de tu interés para obtener una cotización": "Selecciona tu nacionalidad, gobierno/institución y los cursos marítimos de tu interés para obtener una cotización",
@@ -68,6 +74,10 @@ const es = {
     "Gobierno/Institución:": "Gobierno/Institución:",
     "Nueva Cotización": "Nueva Cotización",
     "Descargar PDF": "Descargar PDF",
+    "Verificar": "Verificar",
+    "Ingresa el Código": "Ingresa el Código",
+    "Código incorrecto. Intenta de nuevo": "Código incorrecto. Intenta de nuevo",
+    "¡Verificación exitosa!": "¡Verificación exitosa!",
   }
 };
 

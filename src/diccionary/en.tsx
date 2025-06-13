@@ -1,6 +1,12 @@
 // src/locales/es.ts
-const es = {
+const en = {
   translation: {
+    "Help Us Help You": "Ayúdanos a Ayudarte",
+    "What information do you need?": "¿Qué información necesitas?",
+    "Courses": "Cursos",
+    "License Procedure": "Tramite de Licencia",
+    "Liberia COC": "Liberia COC",
+
     // Header
     "Course Quote": "Cotización de Cursos",
     "Select your nationality, government/institution, and the maritime courses of your interest to get a quote": "Selecciona tu nacionalidad, gobierno/institución y los cursos marítimos de tu interés para obtener una cotización",
@@ -68,7 +74,11 @@ const es = {
     "Government/Institution:": "Gobierno/Institución:",
     "New Quote": "Nueva Cotización",
     "Download PDF": "Descargar PDF",
+    "Verify": "Verificar",
+    "Enter Code": "Ingresa el código",
+    "Incorrect code. Please try again.": "Código incorrecto. Intenta de nuevo.",
+    "Verification successful!": "¡Verificación exitosa!",
   }
 };
 
-export default es;
+export default en;

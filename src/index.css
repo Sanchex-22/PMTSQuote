@@ -9,25 +9,3 @@
 }
 
 /* Texto negro por defecto */
-.text-transition,
-.text-transition a,
-.text-transition button {
-  color: rgb(255, 136, 0);
-  transition: color 0.3s ease;
-}
-
-/* Texto blanco al hacer scroll */
-.scrolled.text-transition,
-.scrolled.text-transition a,
-.scrolled.text-transition button {
-  color: white;
-}
-
-.bg1-black {
-  background-color: black;
-}
-
-.sidebar-blur {
-  background-color: rgba(0, 0, 0, 0.457);
-  backdrop-filter: blur(10px);
-}

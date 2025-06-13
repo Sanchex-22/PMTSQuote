@@ -1,6 +1,5 @@
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
-import { NotFound } from "../pages/public_pages/not_found";
 import LoginPage from "../pages/auth/loginPage";
 import Dashboard from "../pages/account/principal";
 import ProtectedLogin from "./protectedLogin";
@@ -16,6 +15,7 @@ import routesConfig from "./routesConfig";
 import useUserProfile from "../hook/userUserProfile";
 import Home from "../pages/public_pages/home/home";
 import CourseQuote from "../pages/public_pages/home/CourseQuote";
+import NotFound from "../pages/public_pages/not_found";
 
 // Tipado de usuario
 export interface User {
