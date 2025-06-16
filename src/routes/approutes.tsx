@@ -17,6 +17,7 @@ import Home from "../pages/public_pages/home/home";
 import CourseQuote from "../pages/public_pages/home/CourseQuote";
 import NotFound from "../pages/public_pages/not_found";
 import LicenseQuote from "../pages/public_pages/home/license/licence";
+import MedicalCertificateForm from "../pages/public_pages/home/medical-cert/MedicalCert";
 
 // Tipado de usuario
 export interface User {
@@ -97,6 +98,20 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
             publicRoute={true}
           >
             <LicenseQuote />
+          </EnvolveLayout>
+        }/>
+
+      <Route path="/medical" 
+        element={          
+        <EnvolveLayout
+            title="PmtsQ"
+            description="PmtsQ"
+            isLogged={isLogged}
+            profile={profile}
+            currentPathname={pathnameLocation}
+            publicRoute={true}
+          >
+            <MedicalCertificateForm />
           </EnvolveLayout>
         }/>
       <Route
