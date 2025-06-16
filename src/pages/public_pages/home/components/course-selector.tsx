@@ -4,7 +4,6 @@ import type React from "react"
 import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next" // <--- Importa useTranslation
 import { GraduationIcon, SearchIcon, ClearIcon } from "../../../../components/icons/icons"
-import { getCourseBasePrice, calculateCoursePrice } from "../../../../utils/pricing"
 // REMOVER: import { Courses, courses } from "../../../../data/courses" // <--- Elimina esta línea
 import { type Course } from "../../../../services/courses" // <--- Importa la interfaz Course desde tu servicio
 
@@ -20,8 +19,6 @@ interface CourseSelectorProps {
 export const CourseSelector: React.FC<CourseSelectorProps> = ({
   selectedCourses,
   onChange,
-  government,
-  nationality,
   renewalCourses,
   availableCourses, // <--- Asegúrate de desestructurar availableCourses
 }) => {

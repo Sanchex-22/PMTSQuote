@@ -166,7 +166,6 @@ const CourseRenewalSelector: React.FC<{
             <div className="max-h-60 overflow-y-auto">
               {renewableCourses.length > 0 ? (
                 renewableCourses.map((course) => {
-                  const price = getRenewalPrice(course); // Obtén el precio para mostrarlo
                   return (
                     <label
                       key={course.id}
@@ -203,7 +202,6 @@ const CourseRenewalSelector: React.FC<{
       {selectedCoursesData.length > 0 && (
         <div className="space-y-3">
           {selectedCoursesData.map((course) => {
-            const price = getRenewalPrice(course)
             return (
               <div
                 key={course.id}

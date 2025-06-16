@@ -244,8 +244,10 @@ export default function CourseQuote() {
   if (loadingCourses) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <LoadingSpinner className="w-10 h-10 text-blue-500" />
-        <p className="ml-3 text-lg text-gray-700">{t("Loading courses...")}</p>
+        <span className="flex items-center">
+          <LoadingSpinner />
+          <span className="ml-3 text-lg text-gray-700">{t("Loading courses...")}</span>
+        </span>
       </div>
     )
   }
