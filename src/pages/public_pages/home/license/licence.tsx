@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import { User, Mail, Phone, MapPin, FileText, Upload, Send, Loader2 } from "lucide-react";
 import Images from "../../../../assets";
 import { t } from "i18next";
-import { submitLicenseApplication } from "../../../../actions/licenseActions";
+// import { submitLicenseApplication } from "../../../../actions/licenseActions";
 
 export default function LicenseQuote() {
   // Estados para manejar la UI manualmente
@@ -31,20 +31,20 @@ export default function LicenseQuote() {
     setIsLoading(true); // Iniciar el estado de carga
     setStatus({ message: null, success: false }); // Limpiar estado anterior
 
-    const formData = new FormData(event.currentTarget);
+    // const formData = new FormData(event.currentTarget);
 
     // Llamamos a la action como una función async normal
-    const result = await submitLicenseApplication(formData);
+    // const result = await submitLicenseApplication(formData);
 
     // Actualizamos el estado con la respuesta de la action
-    setStatus(result);
+    // setStatus(result);
     setIsLoading(false); // Finalizar el estado de carga
 
     // Si tuvo éxito, reseteamos el formulario
-    if (result.success) {
-      formRef.current?.reset();
-      setFileName("");
-    }
+    // if (result.success) {
+    //   formRef.current?.reset();
+    //   setFileName("");
+    // }
   };
 
   return (
