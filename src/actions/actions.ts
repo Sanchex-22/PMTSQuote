@@ -46,7 +46,7 @@ export async function submitRegistration(formData: FormData): Promise<Registrati
   }
 
   try {
-    const response = await fetch(VITE_API_URL, {
+    const response = await fetch(`${VITE_API_URL}/api/send-email`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

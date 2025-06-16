@@ -1,13 +1,15 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { useTranslation, Trans } from "react-i18next" // <--- CAMBIO: Importación correcta
+import { useState, useEffect } from "react"
+import { useTranslation, Trans } from "react-i18next"
 import { submitRegistration } from "../../../actions/actions"
-import type { Courses } from "../../../data/courses"
-import { courses } from "../../../data/courses"
 import Images from "../../../assets"
 import countryNationality from "../../../data/countries"
+
+// Importar la clase de servicio y la interfaz de Course
+// Asegúrate de que esta ruta sea correcta según la ubicación de tu archivo courses.ts o courseServices.ts
+import { Course, CourseServices } from "../../../services/courses" // <--- REVISAR: Asegúrate que esta ruta sea la correcta (services/courses o services/courseServices)
 
 // Importar iconos
 import {
@@ -19,7 +21,6 @@ import {
   LoadingSpinner,
   BackIcon,
   CheckIcon,
-  // DownloadIcon,
 } from "../../../components/icons/icons"
 
 import {
@@ -38,9 +39,10 @@ import { CustomButton } from "../../../components/forms/custom-button"
 import { CustomInput } from "../../../components/forms/customInput"
 import { CustomSelect } from "../../../components/forms/custom-select"
 
+
 interface RegistrationResult {
-  courses: Courses[]
-  renewalCourses: Courses[]
+  courses: Course[]
+  renewalCourses: Course[]
   studentInfo: {
     name: string
     lastName: string
@@ -61,7 +63,13 @@ const countryOptions = countryNationality.map(([country]) => ({
 }))
 
 export default function CourseQuote() {
-  const { t } = useTranslation() // <--- CAMBIO: Hook de traducción
+  const { t } = useTranslation()
+
+  // NUEVOS ESTADOS PARA LOS CURSOS DE LA API
+  const [apiCourses, setApiCourses] = useState<Course[]>([])
+  const [loadingCourses, setLoadingCourses] = useState(true)
+  const [errorCourses, setErrorCourses] = useState<string | null>(null)
+
   const [formData, setFormData] = useState({
     name: "",
     lastName: "",
@@ -78,6 +86,26 @@ export default function CourseQuote() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [captchaVerified, setCaptchaVerified] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+
+  // EFECTO PARA CARGAR LOS CURSOS DE LA API AL MONTAR EL COMPONENTE
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoadingCourses(true)
+        setErrorCourses(null)
+        const service = new CourseServices()
+        const data = await service.getAllCourses()
+        setApiCourses(data)
+      } catch (err: unknown) { // Mejor tipado para el error
+        console.error("Error al cargar cursos:", err)
+        setErrorCourses(t("Failed to load courses. Please try again later.") + (err instanceof Error ? ` ${err.message}` : ''));
+      } finally {
+        setLoadingCourses(false)
+      }
+    }
+
+    fetchCourses()
+  }, []) // El array vacío asegura que se ejecute solo una vez al montar
 
   // Obtener información del gobierno
   const govInfo = getGovernmentInfo(formData.government)
@@ -101,71 +129,97 @@ export default function CourseQuote() {
     })
   }
 
-  const calculateTotalCost = () => {
-    const selectedCoursesData = courses.filter((course) => formData.courses.includes(String(course.id)))
-    const selectedRenewalCoursesData = courses.filter((course) => formData.renewalCourses.includes(String(course.id)))
-    const newCoursesTotal = selectedCoursesData.reduce(
+  // --- REINTRODUCIDA Y MEJORADA ---
+  const calculateCosts = () => {
+    // AHORA USA apiCourses para encontrar los objetos completos
+    const selectedNewCoursesData = apiCourses.filter((course) => formData.courses.includes(String(course.id)));
+    const selectedRenewalCoursesData = apiCourses.filter((course) => formData.renewalCourses.includes(String(course.id)));
+
+    const newCoursesTotal = selectedNewCoursesData.reduce(
       (total, course) => total + calculateCoursePrice(course, formData.nationality, formData.government),
       0,
-    )
+    );
     const renewalCoursesTotal = selectedRenewalCoursesData.reduce(
       (total, course) => total + calculateRenewalPrice(course, formData.nationality, formData.government),
       0,
-    )
-    return newCoursesTotal + renewalCoursesTotal
-  }
+    );
+    const totalCost = newCoursesTotal + renewalCoursesTotal;
+
+    return {
+      selectedNewCoursesData,
+      selectedRenewalCoursesData,
+      newCoursesTotal,
+      renewalCoursesTotal,
+      totalCost,
+    };
+  };
+  // --- FIN REINTRODUCIDA Y MEJORADA ---
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (apiCourses.length === 0) {
+      alert(t("Courses data is not loaded yet. Please wait or refresh."))
+      return;
+    }
+
     if (!formData.government) {
-      alert(t("Please select a government/institution.")) // CAMBIO
+      alert(t("Please select a government/institution."))
       return
     }
     if (!formData.nationality) {
-      alert(t("Please select your nationality.")) // CAMBIO
+      alert(t("Please select your nationality."))
       return
     }
     if (formData.courses.length === 0 && formData.renewalCourses.length === 0) {
-      alert(t("Please select at least one new or renewal course.")) // CAMBIO
+      alert(t("Please select at least one new or renewal course."))
       return
     }
     const conflicts = formData.courses.filter((courseId) => formData.renewalCourses.includes(courseId))
     if (conflicts.length > 0) {
-      alert(t("Error: There are courses selected as both new and for renewal. Please review your selection.")) // CAMBIO
+      alert(t("Error: There are courses selected as both new and for renewal. Please review your selection."))
       return
     }
     if (!captchaVerified) {
-      alert(t("Please verify the captcha before continuing.")) // CAMBIO
+      alert(t("Please verify the captcha before continuing."))
       return
     }
     if (!termsAccepted) {
-      alert(t("You must accept the terms and conditions to continue.")) // CAMBIO
+      alert(t("You must accept the terms and conditions to continue."))
       return
     }
 
     setIsLoading(true)
-
     try {
-      const result = await submitRegistration(formData)
-      const totalCost = calculateTotalCost()
+      // Si submitRegistration necesita el formData completo y no devuelve los detalles del curso,
+      // la siguiente lógica es correcta. Si submitRegistration DEVOLVIERA los datos de RegistrationResult,
+      // entonces esta parte de la lógica cambiaría para usar lo que submitRegistration devuelve.
+      // Para este ejemplo, asumo que submitRegistration solo procesa el formulario.
+      await submitRegistration(formData); // Ejecuta la acción de envío del formulario si es necesario
+
+      const {
+        selectedNewCoursesData,
+        selectedRenewalCoursesData,
+        newCoursesTotal,
+        renewalCoursesTotal,
+        totalCost,
+      } = calculateCosts(); // <-- USA LA FUNCIÓN REINTRODUCIDA
+
+      // Find selected government label
       const selectedGov = governments.find((g) => g.value === formData.government)
-      const selectedNewCoursesData = courses.filter((course) => formData.courses.includes(String(course.id)))
-      const selectedRenewalCoursesData = courses.filter((course) =>
-        formData.renewalCourses.includes(String(course.id)),
-      )
-      const newCoursesTotal = selectedNewCoursesData.reduce(
-        (total, course) => total + calculateCoursePrice(course, formData.nationality, formData.government),
-        0,
-      )
-      const renewalCoursesTotal = selectedRenewalCoursesData.reduce(
-        (total, course) => total + calculateRenewalPrice(course, formData.nationality, formData.government),
-        0,
-      )
+
+      // Compose registration result
       const fixedResult: RegistrationResult = {
-        ...result,
-        courses: selectedNewCoursesData.map((course) => ({ ...course, abbr: course?.abbr ?? null })),
-        renewalCourses: selectedRenewalCoursesData.map((course) => ({ ...course, abbr: course?.abbr ?? null })),
+        courses: selectedNewCoursesData, // Ya son Course[]
+        renewalCourses: selectedRenewalCoursesData, // Ya son Course[]
+        studentInfo: {
+          name: formData.name,
+          lastName: formData.lastName,
+          document: formData.document,
+          nationality: formData.nationality,
+          email: formData.email,
+          phone: formData.phone,
+        },
         totalCost,
         newCoursesTotal,
         renewalCoursesTotal,
@@ -175,7 +229,7 @@ export default function CourseQuote() {
       setShowConfirmation(true)
     } catch (error) {
       console.error("Error submitting registration:", error)
-      alert(error instanceof Error ? error.message : t("There was an error submitting your quote")) // CAMBIO
+      alert(error instanceof Error ? error.message : t("There was an error submitting your quote"))
     } finally {
       setIsLoading(false)
     }
@@ -184,6 +238,27 @@ export default function CourseQuote() {
   const handleBack = () => {
     setShowConfirmation(false)
     setRegistration(null)
+  }
+
+  // MANEJO DE ESTADOS DE CARGA Y ERROR PARA LOS CURSOS
+  if (loadingCourses) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <LoadingSpinner className="w-10 h-10 text-blue-500" />
+        <p className="ml-3 text-lg text-gray-700">{t("Loading courses...")}</p>
+      </div>
+    )
+  }
+
+  if (errorCourses) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 text-center">
+        <p className="text-red-600 text-lg mb-4">{errorCourses}</p>
+        <CustomButton onClick={() => window.location.reload()} variant="primary">
+          {t("Reload Page")}
+        </CustomButton>
+      </div>
+    )
   }
 
   return (
@@ -347,6 +422,7 @@ export default function CourseQuote() {
                           government={formData.government}
                           nationality={formData.nationality}
                           renewalCourses={formData.renewalCourses}
+                          availableCourses={apiCourses}
                         />
                       </div>
 
@@ -361,6 +437,7 @@ export default function CourseQuote() {
                           selectedCourses={formData.renewalCourses}
                           onChange={(courses) => handleInputChange("renewalCourses", courses)}
                           government={formData.government}
+                          availableCourses={apiCourses}
                         />
                       </div>
                     </>
@@ -375,6 +452,7 @@ export default function CourseQuote() {
                         selectedRenewalCourses={formData.renewalCourses}
                         government={formData.government}
                         nationality={formData.nationality}
+                        availableCourses={apiCourses}
                       />
                     )}
 
@@ -418,7 +496,8 @@ export default function CourseQuote() {
                         !termsAccepted ||
                         (formData.courses.length === 0 && formData.renewalCourses.length === 0) ||
                         !formData.nationality ||
-                        !formData.government
+                        !formData.government ||
+                        apiCourses.length === 0 // Deshabilita si los cursos no se han cargado
                       }
                       variant="primary"
                     >
@@ -465,22 +544,6 @@ export default function CourseQuote() {
                       <div className="text-center">
                         <h3 className="text-lg font-semibold text-green-800 mb-2">{t("Total Cost")}</h3>
                         <div className="text-4xl font-bold text-green-800">${registration.totalCost}</div>
-                        <div className="flex justify-center gap-4 mt-3 text-sm">
-                          {registration.newCoursesTotal > 0 && (
-                            <span className="text-green-600">
-                              {t("New: ${{newCoursesTotal}}", {
-                                newCoursesTotal: registration.newCoursesTotal,
-                              })}
-                            </span>
-                          )}
-                          {registration.renewalCoursesTotal > 0 && (
-                            <span className="text-orange-600">
-                              {t("Renewals: ${{renewalCoursesTotal}}", {
-                                renewalCoursesTotal: registration.renewalCoursesTotal,
-                              })}
-                            </span>
-                          )}
-                        </div>
                       </div>
                     </div>
 

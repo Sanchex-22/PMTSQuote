@@ -2,9 +2,11 @@
 
 import type React from "react"
 import { useState, useMemo } from "react"
+import { useTranslation } from "react-i18next" // <--- Importa useTranslation
 import { GraduationIcon, SearchIcon, ClearIcon } from "../../../../components/icons/icons"
 import { getCourseBasePrice, calculateCoursePrice } from "../../../../utils/pricing"
-import { courses } from "../../../../data/courses"
+// REMOVER: import { Courses, courses } from "../../../../data/courses" // <--- Elimina esta línea
+import { type Course } from "../../../../services/courses" // <--- Importa la interfaz Course desde tu servicio
 
 interface CourseSelectorProps {
   selectedCourses: string[]
@@ -12,6 +14,7 @@ interface CourseSelectorProps {
   government: string
   nationality: string
   renewalCourses: string[]
+  availableCourses: Course[] // <--- Esta es la prop crucial que recibirás
 }
 
 export const CourseSelector: React.FC<CourseSelectorProps> = ({
@@ -20,25 +23,29 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
   government,
   nationality,
   renewalCourses,
+  availableCourses, // <--- Asegúrate de desestructurar availableCourses
 }) => {
+  const { t } = useTranslation() // <--- Inicializa el hook de traducción
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
 
-
   // Filtrar cursos basado en el término de búsqueda
   const filteredCourses = useMemo(() => {
-    if (!searchTerm.trim()) return courses
+    if (!searchTerm.trim()) return availableCourses // <--- CAMBIO: Usar availableCourses
 
     const term = searchTerm.toLowerCase()
-    return courses.filter((course) => {
-      return course.name.toLowerCase().includes(term) || course.abbr.toLowerCase().includes(term)
+    return availableCourses.filter((course) => { // <--- CAMBIO: Usar availableCourses
+      return (
+        course.name.toLowerCase().includes(term) ||
+        (course.abbr && course.abbr.toLowerCase().includes(term)) // <--- Asegura que abbr no sea null
+      )
     })
-  }, [searchTerm])
+  }, [searchTerm, availableCourses]) // <--- CAMBIO: availableCourses como dependencia
 
   const toggleCourse = (courseId: string) => {
     // Verificar si el curso ya está seleccionado para renovación
     if (renewalCourses.includes(courseId)) {
-      alert("Este curso ya está seleccionado para renovación. No puedes seleccionarlo como curso nuevo.")
+      alert(t("This course is already selected for renewal. You cannot select it as a new course.")) // <--- CAMBIO: Usar t()
       return
     }
 
@@ -49,7 +56,8 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
     }
   }
 
-  const selectedCoursesData = courses.filter((course) => selectedCourses.includes(String(course.id)))
+  // <--- CAMBIO: Usar availableCourses para obtener los datos completos de los cursos seleccionados
+  const selectedCoursesData = availableCourses.filter((course) => selectedCourses.includes(String(course.id)))
 
   const clearSearch = () => {
     setSearchTerm("")
@@ -61,15 +69,14 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full h-12 px-4 pl-10 pr-10 bg-white border border-gray-200 rounded-xl 
+          className="w-full h-12 px-4 pl-10 pr-10 bg-white border border-gray-200 rounded-xl
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                      transition-all duration-200 text-left hover:border-gray-300 text-gray-900"
         >
           {selectedCourses.length === 0
-            ? "Selecciona uno o más cursos"
-            : `${selectedCourses.length} curso${selectedCourses.length > 1 ? "s" : ""} seleccionado${
-                selectedCourses.length > 1 ? "s" : ""
-              }`}
+            ? t("Select one or more courses") // <--- CAMBIO: Usar t()
+            : t("{{count}} course(s) selected", { count: selectedCourses.length }) // <--- CAMBIO: Usar t() con pluralización
+          }
         </button>
 
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -96,8 +103,8 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar por nombre o abreviación..."
-                  className="w-full h-10 px-4 pl-10 pr-10 bg-gray-50 border border-gray-200 rounded-lg 
+                  placeholder={t("Search by name or abbreviation...")} // <--- CAMBIO: Usar t()
+                  className="w-full h-10 px-4 pl-10 pr-10 bg-gray-50 border border-gray-200 rounded-lg
                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                            text-sm"
                 />
@@ -120,8 +127,6 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
             <div className="max-h-60 overflow-y-auto">
               {filteredCourses.length > 0 ? (
                 filteredCourses.map((course) => {
-                  const basePrice = getCourseBasePrice(course, nationality)
-                  const finalPrice = calculateCoursePrice(course, nationality, government)
                   const isInRenewal = renewalCourses.includes(String(course.id))
                   const isSelected = selectedCourses.includes(String(course.id))
 
@@ -147,23 +152,11 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
                         >
                           {course.name}
                           {isInRenewal && (
-                            <span className="text-orange-600 ml-2">(Ya seleccionado para renovación)</span>
+                            <span className="text-orange-600 ml-2">({t("Already selected for renewal")})</span>
                           )}
                         </div>
                         <div className="flex items-center justify-between gap-3 text-xs text-gray-500 mt-1">
-                          <span className="font-mono bg-gray-100 px-2 py-1 rounded">{course.abbr}</span>
-                          {basePrice > 0 && !isInRenewal && (
-                            <div className="flex items-center gap-1">
-                              <span className="font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
-                                ${finalPrice}
-                              </span>
-                              {/* {govInfo.surcharge > 0 && (
-                                <span className="text-xs text-orange-600 bg-orange-50 px-1 py-1 rounded">
-                                  Base: ${basePrice}
-                                </span>
-                              )} */}
-                            </div>
-                          )}
+                          <span className="font-mono bg-gray-100 px-2 py-1 rounded">{course.abbr || t("N/A")}</span> {/* <--- CAMBIO: Usar t() */}
                         </div>
                       </div>
                     </label>
@@ -171,9 +164,11 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
                 })
               ) : (
                 <div className="px-4 py-6 text-center text-gray-500">
-                  <SearchIcon />
-                  <p className="mt-2 text-sm">No se encontraron cursos</p>
-                  <p className="text-xs text-gray-400">Intenta con otros términos de búsqueda</p>
+                  <span className="mx-auto w-6 h-6 text-gray-400">
+                    <SearchIcon />
+                  </span>
+                  <p className="mt-2 text-sm">{t("No courses found")}</p>
+                  <p className="text-xs text-gray-400">{t("Try other search terms")}</p>
                 </div>
               )}
             </div>
@@ -193,7 +188,7 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-blue-900 text-sm leading-tight">{course.name}</h4>
                   <div className="flex items-center gap-3 text-blue-700 text-xs mt-2">
-                    <span className="font-mono bg-blue-100 px-2 py-1 rounded">{course.abbr}</span>
+                    <span className="font-mono bg-blue-100 px-2 py-1 rounded">{course.abbr || t("N/A")}</span> {/* <--- CAMBIO: Usar t() */}
                   </div>
                 </div>
                 <button

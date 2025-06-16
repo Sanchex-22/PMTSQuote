@@ -2,31 +2,61 @@
 
 import type React from "react"
 import { useState, useMemo } from "react"
-import { Courses, courses } from "../../data/courses"
+import { useTranslation } from "react-i18next" // Importa useTranslation
+import { Course } from "../../services/courses"
+
+// Importa la interfaz Course desde tu archivo de servicios
+
+// Si la interfaz Course en '../../../services/courses' no tiene estas propiedades,
+// DEBES AÑADIRLAS para que el componente funcione correctamente.
+// Ejemplo:
+// export interface Course {
+//   id: number;
+//   name: string;
+//   abbr?: string | null;
+//   price?: number; // Precio base general, si existe
+//   price_panamanian_renewal?: number | null; // <-- Añadir estas
+//   price_foreign_renewal?: number | null;   // <-- Añadir estas
+//   // ... otras propiedades que vengan de la API
+// }
+
 
 // Componente para selección múltiple de cursos de renovación
 const CourseRenewalSelector: React.FC<{
   selectedCourses: string[]
   onChange: (courses: string[]) => void
   government: string
-}> = ({ selectedCourses, onChange, government }) => {
+  availableCourses: Course[] // Esta es la prop crucial que recibirás
+}> = ({ selectedCourses, onChange, government, availableCourses }) => { // Asegúrate de desestructurar availableCourses
+  const { t } = useTranslation() // Inicializa el hook de traducción
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
 
+  // Calcular precio de renovación basado en el gobierno seleccionado
+  const getRenewalPrice = (course: Course): number => { // Tipado de course como Course
+    if (government === "panama") {
+      return course.price_panamanian_renewal ?? 0 // Usar nullish coalescing para seguridad
+    } else {
+      return course.price_foreign_renewal ?? 0 // Usar nullish coalescing para seguridad
+    }
+  }
+
   // Filtrar solo cursos que tienen precio de renovación
   const renewableCourses = useMemo(() => {
-    return courses.filter((course) => {
-      const hasRenewalPrice =
-        government === "panama" ? course.price_panamanian_renewal !== null : course.price_foreign_renewal !== null
+    return availableCourses.filter((course) => { // <--- CAMBIO: Usar availableCourses
+      const hasRenewalPrice = getRenewalPrice(course) > 0; // Utiliza la función para determinar si tiene precio de renovación válido
 
-      if (!hasRenewalPrice) return false
+      if (!hasRenewalPrice) return false;
 
-      if (!searchTerm.trim()) return true
+      if (!searchTerm.trim()) return true;
 
-      const term = searchTerm.toLowerCase()
-      return course.name.toLowerCase().includes(term) || course.abbr.toLowerCase().includes(term)
-    })
-  }, [searchTerm, government])
+      const term = searchTerm.toLowerCase();
+      return (
+        course.name.toLowerCase().includes(term) ||
+        (course.abbr && course.abbr.toLowerCase().includes(term)) // Asegura que abbr no sea null
+      );
+    });
+  }, [searchTerm, government, availableCourses]); // <--- CAMBIO: availableCourses como dependencia
 
   const toggleCourse = (courseId: string) => {
     if (selectedCourses.includes(courseId)) {
@@ -36,23 +66,16 @@ const CourseRenewalSelector: React.FC<{
     }
   }
 
-  const selectedCoursesData = courses.filter((course) => selectedCourses.includes(String(course.id)))
+  // <--- CAMBIO: Usar availableCourses para obtener los datos completos de los cursos seleccionados
+  const selectedCoursesData = availableCourses.filter((course) => selectedCourses.includes(String(course.id)))
 
   const clearSearch = () => {
     setSearchTerm("")
   }
 
-  // Calcular precio de renovación basado en el gobierno seleccionado
-  const getRenewalPrice = (course: Courses) => {
-    if (government === "panama") {
-      return course.price_panamanian_renewal || 0
-    } else {
-      return course.price_foreign_renewal || 0
-    }
-  }
-
-  const SearchIcon = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  // Iconos (sin cambios, solo los incluyo por completitud)
+  const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -85,15 +108,14 @@ const CourseRenewalSelector: React.FC<{
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full h-12 px-4 pl-10 pr-10 bg-white border border-gray-200 rounded-xl 
+          className="w-full h-12 px-4 pl-10 pr-10 bg-white border border-gray-200 rounded-xl
                      focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent
                      transition-all duration-200 text-left hover:border-gray-300 text-gray-900"
         >
           {selectedCourses.length === 0
-            ? "Selecciona cursos para renovar"
-            : `${selectedCourses.length} renovación${selectedCourses.length > 1 ? "es" : ""} seleccionada${
-                selectedCourses.length > 1 ? "s" : ""
-              }`}
+            ? t("Select courses for renewal") // <--- CAMBIO: Usar t()
+            : t("{{count}} renewal(s) selected", { count: selectedCourses.length }) // <--- CAMBIO: Usar t() con pluralización
+          }
         </button>
 
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -120,8 +142,8 @@ const CourseRenewalSelector: React.FC<{
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar cursos para renovar..."
-                  className="w-full h-10 px-4 pl-10 pr-10 bg-gray-50 border border-gray-200 rounded-lg 
+                  placeholder={t("Search renewal courses...")} // <--- CAMBIO: Usar t()
+                  className="w-full h-10 px-4 pl-10 pr-10 bg-gray-50 border border-gray-200 rounded-lg
                            focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent
                            text-sm"
                 />
@@ -144,6 +166,7 @@ const CourseRenewalSelector: React.FC<{
             <div className="max-h-60 overflow-y-auto">
               {renewableCourses.length > 0 ? (
                 renewableCourses.map((course) => {
+                  const price = getRenewalPrice(course); // Obtén el precio para mostrarlo
                   return (
                     <label
                       key={course.id}
@@ -158,7 +181,7 @@ const CourseRenewalSelector: React.FC<{
                       <div className="flex-1 min-w-0">
                         <div className="text-gray-900 font-medium text-sm leading-tight">{course.name}</div>
                         <div className="flex items-center justify-between gap-3 text-xs text-gray-500 mt-1">
-                          <span className="font-mono bg-gray-100 px-2 py-1 rounded">{course.abbr}</span>
+                          <span className="font-mono bg-gray-100 px-2 py-1 rounded">{course.abbr || t("N/A")}</span> {/* <--- CAMBIO: Usar t() */}
                         </div>
                       </div>
                     </label>
@@ -166,9 +189,9 @@ const CourseRenewalSelector: React.FC<{
                 })
               ) : (
                 <div className="px-4 py-6 text-center text-gray-500">
-                  <SearchIcon />
-                  <p className="mt-2 text-sm">No se encontraron cursos renovables</p>
-                  <p className="text-xs text-gray-400">Intenta con otros términos de búsqueda</p>
+                  <SearchIcon className="mx-auto w-6 h-6 text-gray-400" /> {/* Asegurar que los íconos se muestran centrado */}
+                  <p className="mt-2 text-sm">{t("No renewable courses found")}</p> {/* <--- CAMBIO: Usar t() */}
+                  <p className="text-xs text-gray-400">{t("Try other search terms")}</p> {/* <--- CAMBIO: Usar t() */}
                 </div>
               )}
             </div>
@@ -188,13 +211,10 @@ const CourseRenewalSelector: React.FC<{
               >
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-orange-900 text-sm leading-tight">
-                    {course.name} <span className="text-xs text-orange-600">(Renovación)</span>
+                    {course.name} <span className="text-xs text-orange-600">({t("Renewal")})</span> {/* <--- CAMBIO: Usar t() */}
                   </h4>
                   <div className="flex items-center gap-3 text-orange-700 text-xs mt-2">
-                    <span className="font-mono bg-orange-100 px-2 py-1 rounded">{course.abbr}</span>
-                    {price > 0 && (
-                      <span className="font-semibold text-orange-600 bg-white px-2 py-1 rounded">${price}</span>
-                    )}
+                    <span className="font-mono bg-orange-100 px-2 py-1 rounded">{course.abbr || t("N/A")}</span> {/* <--- CAMBIO: Usar t() */}
                   </div>
                 </div>
                 <button
