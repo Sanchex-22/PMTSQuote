@@ -1,13 +1,9 @@
 "use server";
 
-import { revalidatePath } from 'next/cache';
 
 // Reemplaza esto con la URL real de tu API, ojalá desde variables de entorno
-const API_URL = process.env.VITE_API_URL || 'http://tu-backend.com/api';
+const { VITE_API_URL } = import.meta.env
 
-// La función de una Server Action que usa `useFormState` recibe dos argumentos:
-// prevState: el estado anterior del formulario (lo usaremos para los mensajes de éxito/error).
-// formData: el objeto FormData que viene directamente del <form>.
 export async function submitLicenseApplication(formData: FormData) {
   
   // 1. Extraer los datos del objeto FormData
@@ -41,11 +37,15 @@ export async function submitLicenseApplication(formData: FormData) {
   apiFormData.append("direccion", direccion ? String(direccion) : "");
   apiFormData.append("licencias", licencias ? String(licencias) : "");
   apiFormData.append("documento", documento);
+  for (const [key, value] of apiFormData.entries()) {
+  console.log(`${key}:`, value);
+}
 
   // 4. Realizar la petición a tu backend
+  
   try {
     // ¡IMPORTANTE! Reemplaza '/license-quote' con el endpoint real de tu API
-    const response = await fetch(`${API_URL}/license/license-quote`, {
+    const response = await fetch(`${VITE_API_URL}/api/license/license-quote`, {
       method: "POST",
       body: apiFormData,
       // NO establezcas el 'Content-Type'. El navegador/fetch lo hará automáticamente
@@ -56,12 +56,7 @@ export async function submitLicenseApplication(formData: FormData) {
       const errorData = await response.json().catch(() => ({ message: 'Error desconocido del servidor.' }));
       throw new Error(errorData.message || "Hubo un problema al contactar al servidor.");
     }
-    
-    // Si tu API devuelve algo, puedes procesarlo aquí
-    // const result = await response.json();
-
-    // Revalidar la ruta si es necesario (útil si muestras una lista de solicitudes)
-    revalidatePath('/ruta-del-formulario'); 
+    // revalidatePath('/ruta-del-formulario'); 
     
     return { success: true, message: "¡Solicitud enviada con éxito! Nos pondremos en contacto pronto." };
 

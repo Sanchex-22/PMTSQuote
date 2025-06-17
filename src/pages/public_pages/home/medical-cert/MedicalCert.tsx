@@ -1,5 +1,6 @@
-"use client"
+"use client"; // ¡Importante!
 
+import { useState } from "react"; // Para mostrar el nombre del archivo seleccionado
 import {
   User,
   Weight,
@@ -14,9 +15,108 @@ import {
   Upload,
   Send,
   Stethoscope,
-} from "lucide-react"
+  CheckCircle, // Para feedback
+  AlertTriangle, // Para feedback
+} from "lucide-react";
+import { submitMedicalCertificate } from "../../../../actions/PhysicalActions";
+
+// Componente auxiliar para el input de archivo con feedback visual
+function FileInput({
+  name,
+  label,
+  subLabel,
+  accept,
+  required,
+}: {
+  name: string;
+  label: string;
+  subLabel?: string;
+  accept: string;
+  required?: boolean;
+}) {
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFilePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setFilePreview(null); // No preview for non-images like PDF
+      }
+    } else {
+      setFileName(null);
+      setFilePreview(null);
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+        {subLabel && <span className="block text-xs text-gray-500 font-normal">{subLabel}</span>}
+      </label>
+      <div className="flex items-center justify-center w-full">
+        <label
+          htmlFor={name} // Conectar label con input
+          className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-200 border-dashed rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          {filePreview && <img src={filePreview} alt="Preview" className="max-h-16 mb-1 object-contain" />}
+          {!filePreview && <Upload className="w-6 h-6 mb-1 text-gray-400" />}
+          <p className="text-xs text-gray-500 px-2 text-center">
+            {fileName ? fileName : "Subir archivo (PDF, Imagen)"}
+          </p>
+          <input
+            id={name} // Para que el label funcione
+            type="file"
+            name={name}
+            accept={accept}
+            required={required}
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
 
 export default function MedicalCertificateForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); // Prevenir el comportamiento por defecto si queremos manejar el estado
+    setIsSubmitting(true);
+    setSubmissionStatus(null);
+
+    const formData = new FormData(event.currentTarget);
+    const result = await submitMedicalCertificate(formData);
+
+    setSubmissionStatus(result);
+    setIsSubmitting(false);
+
+    if (result.success) {
+      // Opcional: Resetear el formulario
+      // (event.target as HTMLFormElement).reset();
+      // O redirigir, o mostrar un mensaje de éxito más persistente
+      console.log("Formulario enviado con éxito:", result.message);
+    } else {
+      console.error("Error al enviar el formulario:", result.message);
+    }
+  }
+
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
@@ -31,7 +131,16 @@ export default function MedicalCertificateForm() {
           </div>
 
           {/* Form */}
-          <form className="p-6 space-y-8">
+          {/* 
+            Si NO quieres manejar el estado de envío manualmente con useState y handleSubmit,
+            puedes simplemente hacer:
+            <form action={submitMedicalCertificate} className="p-6 space-y-8">
+            Next.js manejará el FormData automáticamente.
+            La desventaja es menos control sobre el feedback inmediato sin `useFormState` o `useFormStatus`.
+            
+            Para este ejemplo, usaremos el handleSubmit manual para mostrar feedback.
+          */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-8">
             {/* Información Personal */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-900 border-b border-gray-100 pb-2">
@@ -48,6 +157,7 @@ export default function MedicalCertificateForm() {
                     type="text"
                     id="posicion"
                     name="posicion"
+                    required
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
                     placeholder="Ej: Capitán, Ingeniero, Cocinero"
                   />
@@ -64,6 +174,7 @@ export default function MedicalCertificateForm() {
                     type="text"
                     id="nombre"
                     name="nombre"
+                    required
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
                     placeholder="Nombre completo"
                   />
@@ -81,6 +192,7 @@ export default function MedicalCertificateForm() {
                       type="text"
                       id="peso"
                       name="peso"
+                      required
                       className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
                       placeholder="70 kg"
                     />
@@ -97,6 +209,7 @@ export default function MedicalCertificateForm() {
                       type="text"
                       id="altura"
                       name="altura"
+                      required
                       className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
                       placeholder="1.75 m"
                     />
@@ -114,6 +227,7 @@ export default function MedicalCertificateForm() {
                     type="text"
                     id="direccion"
                     name="direccion"
+                    required
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
                     placeholder="Dirección completa"
                   />
@@ -126,13 +240,17 @@ export default function MedicalCertificateForm() {
                 </label>
                 <div className="relative">
                   <Eye className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
+                  {/* Cambiado a un select para mejor UX */}
+                  <select
                     id="gafas"
                     name="gafas"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
-                    placeholder="Sí / No"
-                  />
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors appearance-none bg-white"
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="Sí">Sí / Yes</option>
+                    <option value="No">No / No</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -154,7 +272,7 @@ export default function MedicalCertificateForm() {
                     name="condiciones"
                     rows={2}
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors resize-none"
-                    placeholder="Describa cualquier condición médica actual"
+                    placeholder="Describa cualquier condición médica actual (o N/A)"
                   />
                 </div>
               </div>
@@ -170,7 +288,7 @@ export default function MedicalCertificateForm() {
                     name="prescripcion"
                     rows={2}
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors resize-none"
-                    placeholder="Medicamentos actuales"
+                    placeholder="Medicamentos actuales (o N/A)"
                   />
                 </div>
               </div>
@@ -179,7 +297,7 @@ export default function MedicalCertificateForm() {
                 <label htmlFor="cirugia" className="block text-sm font-medium text-gray-700 mb-2">
                   Última Cirugía / Last Surgery
                   <span className="block text-xs text-gray-500 font-normal mt-1">
-                    (si aplica, indicar fecha, razón y condición actual)
+                    (si aplica, indicar fecha, razón y condición actual, o N/A)
                   </span>
                 </label>
                 <div className="relative">
@@ -189,7 +307,7 @@ export default function MedicalCertificateForm() {
                     name="cirugia"
                     rows={3}
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors resize-none"
-                    placeholder="Fecha, tipo de cirugía y estado actual"
+                    placeholder="Fecha, tipo de cirugía y estado actual (o N/A)"
                   />
                 </div>
               </div>
@@ -212,7 +330,7 @@ export default function MedicalCertificateForm() {
                     id="tipo_vacuna"
                     name="tipo_vacuna"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
-                    placeholder="Tipo de vacuna y dosis"
+                    placeholder="Tipo de vacuna y dosis (o N/A)"
                   />
                 </div>
               </div>
@@ -245,7 +363,7 @@ export default function MedicalCertificateForm() {
                       id="ultimo_test"
                       name="ultimo_test"
                       className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
-                      placeholder="Fecha del último test"
+                      placeholder="Fecha del último test (o N/A)"
                     />
                   </div>
                 </div>
@@ -258,101 +376,47 @@ export default function MedicalCertificateForm() {
                 <h3 className="text-lg font-medium text-gray-900 border-b border-gray-100 pb-2 mb-4">
                   Exámenes Físicos Solo Panamá y para licencia de Cocinero
                 </h3>
-                <p className="text-sm text-gray-600 mb-6">Physical Examinations for Panama and Cook's license</p>
+                <p className="text-sm text-gray-600 mb-6">Physical Examinations for Panama and Cook's license (si no aplica, puede dejarlos vacíos)</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hemograma completo / Blood count
-                  </label>
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-200 border-dashed rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-2 pb-2">
-                        <Upload className="w-6 h-6 mb-1 text-gray-400" />
-                        <p className="text-xs text-gray-500">Subir archivo</p>
-                      </div>
-                      <input type="file" name="blood_count" accept=".pdf,image/*" required className="hidden" />
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Química (Creatinina, Glucosa) / Chemistry
-                  </label>
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-200 border-dashed rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-2 pb-2">
-                        <Upload className="w-6 h-6 mb-1 text-gray-400" />
-                        <p className="text-xs text-gray-500">Subir archivo</p>
-                      </div>
-                      <input type="file" name="chemistry" accept=".pdf,image/*" required className="hidden" />
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tipo RH / RH type</label>
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-200 border-dashed rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-2 pb-2">
-                        <Upload className="w-6 h-6 mb-1 text-gray-400" />
-                        <p className="text-xs text-gray-500">Subir archivo</p>
-                      </div>
-                      <input type="file" name="rh_type" accept=".pdf,image/*" required className="hidden" />
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Prueba de drogas / Drug Test</label>
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-200 border-dashed rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-2 pb-2">
-                        <Upload className="w-6 h-6 mb-1 text-gray-400" />
-                        <p className="text-xs text-gray-500">Subir archivo</p>
-                      </div>
-                      <input type="file" name="drug_test" accept=".pdf,image/*" required className="hidden" />
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Análisis de orina / Urinalysis</label>
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-200 border-dashed rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-2 pb-2">
-                        <Upload className="w-6 h-6 mb-1 text-gray-400" />
-                        <p className="text-xs text-gray-500">Subir archivo</p>
-                      </div>
-                      <input type="file" name="urinalysis" accept=".pdf,image/*" required className="hidden" />
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Examen de heces / Stool test</label>
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-200 border-dashed rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-2 pb-2">
-                        <Upload className="w-6 h-6 mb-1 text-gray-400" />
-                        <p className="text-xs text-gray-500">Subir archivo</p>
-                      </div>
-                      <input type="file" name="stool_test" accept=".pdf,image/*" required className="hidden" />
-                    </label>
-                  </div>
-                </div>
+                <FileInput name="blood_count" label="Hemograma completo / Blood count" accept=".pdf,image/*" />
+                <FileInput name="chemistry" label="Química (Creatinina, Glucosa) / Chemistry" accept=".pdf,image/*" />
+                <FileInput name="rh_type" label="Tipo RH / RH type" accept=".pdf,image/*" />
+                <FileInput name="drug_test" label="Prueba de drogas / Drug Test" accept=".pdf,image/*" />
+                <FileInput name="urinalysis" label="Análisis de orina / Urinalysis" accept=".pdf,image/*" />
+                <FileInput name="stool_test" label="Examen de heces / Stool test" accept=".pdf,image/*" />
               </div>
             </div>
+
+            {/* Mensajes de estado de envío */}
+            {submissionStatus && (
+              <div className={`p-4 rounded-md text-sm ${submissionStatus.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} flex items-center gap-2`}>
+                {submissionStatus.success ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                {submissionStatus.message}
+              </div>
+            )}
 
             {/* Botón de envío */}
             <button
               type="submit"
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <Send className="w-5 h-5" />
-              Enviar Formulario
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Enviar Formulario
+                </>
+              )}
             </button>
           </form>
         </div>
