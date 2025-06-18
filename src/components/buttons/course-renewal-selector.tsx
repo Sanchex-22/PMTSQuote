@@ -5,23 +5,7 @@ import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next" // Importa useTranslation
 import { Course } from "../../services/courses"
 
-// Importa la interfaz Course desde tu archivo de servicios
 
-// Si la interfaz Course en '../../../services/courses' no tiene estas propiedades,
-// DEBES AÑADIRLAS para que el componente funcione correctamente.
-// Ejemplo:
-// export interface Course {
-//   id: number;
-//   name: string;
-//   abbr?: string | null;
-//   price?: number; // Precio base general, si existe
-//   price_panamanian_renewal?: number | null; // <-- Añadir estas
-//   price_foreign_renewal?: number | null;   // <-- Añadir estas
-//   // ... otras propiedades que vengan de la API
-// }
-
-
-// Componente para selección múltiple de cursos de renovación
 const CourseRenewalSelector: React.FC<{
   selectedCourses: string[]
   onChange: (courses: string[]) => void
@@ -52,11 +36,12 @@ const CourseRenewalSelector: React.FC<{
 
       const term = searchTerm.toLowerCase();
       return (
-        course.name.toLowerCase().includes(term) ||
-        (course.abbr && course.abbr.toLowerCase().includes(term)) // Asegura que abbr no sea null
+        (course.name && course.name.toLowerCase().includes(term)) ||
+        (course.abbr && course.abbr.toLowerCase().includes(term)) ||
+        (course.imo_no && String(course.imo_no).toLowerCase().includes(term))
       );
     });
-  }, [searchTerm, government, availableCourses]); // <--- CAMBIO: availableCourses como dependencia
+  }, [searchTerm, government, availableCourses]);
 
   const toggleCourse = (courseId: string) => {
     if (selectedCourses.includes(courseId)) {
@@ -213,6 +198,7 @@ const CourseRenewalSelector: React.FC<{
                   </h4>
                   <div className="flex items-center gap-3 text-orange-700 text-xs mt-2">
                     <span className="font-mono bg-orange-100 px-2 py-1 rounded">{course.abbr || t("N/A")}</span> {/* <--- CAMBIO: Usar t() */}
+                    <span className="font-mono bg-orange-100 px-2 py-1 rounded">{course.imo_no || t("N/A")}</span> {/* <--- CAMBIO: Usar t() */}
                   </div>
                 </div>
                 <button

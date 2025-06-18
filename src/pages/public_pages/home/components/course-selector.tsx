@@ -34,6 +34,7 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
     return availableCourses.filter((course) => { // <--- CAMBIO: Usar availableCourses
       return (
         course.name.toLowerCase().includes(term) ||
+        (course.imo_no && course.imo_no.toLowerCase().includes(term)) ||
         (course.abbr && course.abbr.toLowerCase().includes(term)) // <--- Asegura que abbr no sea null
       )
     })
@@ -154,6 +155,7 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
                         </div>
                         <div className="flex items-center justify-between gap-3 text-xs text-gray-500 mt-1">
                           <span className="font-mono bg-gray-100 px-2 py-1 rounded">{course.abbr || t("N/A")}</span> {/* <--- CAMBIO: Usar t() */}
+                                                    <span className="font-mono bg-gray-100 px-2 py-1 rounded">{course.imo_no || t("N/A")}</span> {/* <--- CAMBIO: Usar t() */}
                         </div>
                       </div>
                     </label>

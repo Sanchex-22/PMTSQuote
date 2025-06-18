@@ -13,7 +13,7 @@ export async function submitMedicalCertificate(formData: FormData) {
       console.log(`Campo Texto: ${key}, Valor: ${value}`);
     }
   }
-  console.log("--- Fin de la inspección de FormData ---");
+  console.log("--- Fin de la inspeccióan de FormData ---");
 
   if (!VITE_API_URL) {
     console.error("Error: VITE_API_URL no está configurada en las variables de entorno del servidor.");

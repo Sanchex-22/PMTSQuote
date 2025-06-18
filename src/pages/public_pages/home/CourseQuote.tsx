@@ -263,6 +263,8 @@ export default function CourseQuote() {
     )
   }
 
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
       <div className="max-w-2xl mx-auto">
@@ -435,12 +437,13 @@ export default function CourseQuote() {
                             {t("(Only courses that allow renewal)")}
                           </span>
                         </label>
-                        <CourseRenewalSelector
-                          selectedCourses={formData.renewalCourses}
-                          onChange={(courses) => handleInputChange("renewalCourses", courses)}
-                          government={formData.government}
-                          availableCourses={apiCourses}
-                        />
+                          <CourseRenewalSelector
+                            selectedCourses={formData.renewalCourses}
+                            onChange={(courses) => handleInputChange("renewalCourses", courses)}
+                            government={formData.government}
+                            availableCourses={apiCourses}
+                          />
+
                       </div>
                     </>
                   )}

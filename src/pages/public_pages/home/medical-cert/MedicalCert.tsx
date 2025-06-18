@@ -131,15 +131,6 @@ export default function MedicalCertificateForm() {
           </div>
 
           {/* Form */}
-          {/* 
-            Si NO quieres manejar el estado de envío manualmente con useState y handleSubmit,
-            puedes simplemente hacer:
-            <form action={submitMedicalCertificate} className="p-6 space-y-8">
-            Next.js manejará el FormData automáticamente.
-            La desventaja es menos control sobre el feedback inmediato sin `useFormState` o `useFormStatus`.
-            
-            Para este ejemplo, usaremos el handleSubmit manual para mostrar feedback.
-          */}
           <form onSubmit={handleSubmit} className="p-6 space-y-8">
             {/* Información Personal */}
             <div className="space-y-6">
@@ -166,7 +157,7 @@ export default function MedicalCertificateForm() {
 
               <div>
                 <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre / Name
+                  Nombre completo / Complete Name
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -180,6 +171,16 @@ export default function MedicalCertificateForm() {
                   />
                 </div>
               </div>
+
+              {/* ===== CAMPO AGREGADO ===== */}
+              <FileInput
+                name="documento_identidad"
+                label="Documento de Identidad / Identity Document"
+                subLabel="Pasaporte o Cédula / Passport or ID Card"
+                accept=".pdf,image/*"
+                required
+              />
+              {/* ===== FIN DEL CAMPO AGREGADO ===== */}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
