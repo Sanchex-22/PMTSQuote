@@ -78,6 +78,17 @@ const es = {
     "Ingresa el Código": "Ingresa el Código",
     "Código incorrecto. Intenta de nuevo": "Código incorrecto. Intenta de nuevo",
     "¡Verificación exitosa!": "¡Verificación exitosa!",
+    "Por favor, revisa tu correo electrónico para ver la cotización completa." : "Please check your email to see the full quote.",
+    "Solicitud de Licencia": "License Application",
+    "Completa el formulario para recibir información personalizada": "Complete the form to receive personalized information",
+    "Información sobre las licencias": "License Information ",
+    "En poco tiempo estaremos contactándole.": "We will be in touch with you shortly.",
+    "¡Gracias por su interés!": "Thank you for your interest!",
+    "Haga clic para subir": "Click for Upload",
+    "o arrastre aquí": "or drag here",
+    "Enviar": "Submit",
+    "Escribe aquí tu consulta sobre las licencias que necesitas...": "Write your query here about the licenses you need...",
+
   }
 };
 

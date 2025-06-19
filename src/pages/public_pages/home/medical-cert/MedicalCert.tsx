@@ -1,24 +1,9 @@
 "use client"; // ¡Importante!
 
 import { useState } from "react"; // Para mostrar el nombre del archivo seleccionado
-import {
-  User,
-  Weight,
-  Ruler,
-  MapPin,
-  Eye,
-  Heart,
-  Pill,
-  Scissors,
-  Shield,
-  TestTube,
-  Upload,
-  Send,
-  Stethoscope,
-  CheckCircle, // Para feedback
-  AlertTriangle, // Para feedback
-} from "lucide-react";
+import { User, Weight, Ruler, MapPin, Eye, Heart, Pill, Scissors, Shield, TestTube, Upload, Send, Stethoscope, CheckCircle, AlertTriangle } from 'lucide-react';
 import { submitMedicalCertificate } from "../../../../actions/PhysicalActions";
+import { useTranslation } from "react-i18next";
 
 // Componente auxiliar para el input de archivo con feedback visual
 function FileInput({
@@ -36,7 +21,7 @@ function FileInput({
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-
+  
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -67,7 +52,7 @@ function FileInput({
           htmlFor={name} // Conectar label con input
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-200 border-dashed rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
         >
-          {filePreview && <img src={filePreview} alt="Preview" className="max-h-16 mb-1 object-contain" />}
+          {filePreview && <img src={filePreview || "/placeholder.svg"} alt="Preview" className="max-h-16 mb-1 object-contain" />}
           {!filePreview && <Upload className="w-6 h-6 mb-1 text-gray-400" />}
           <p className="text-xs text-gray-500 px-2 text-center">
             {fileName ? fileName : "Subir archivo (PDF, Imagen)"}
@@ -87,14 +72,14 @@ function FileInput({
   );
 }
 
-
 export default function MedicalCertificateForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<{
     success: boolean;
     message: string;
   } | null>(null);
-
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const { t } = useTranslation()
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); // Prevenir el comportamiento por defecto si queremos manejar el estado
     setIsSubmitting(true);
@@ -107,15 +92,50 @@ export default function MedicalCertificateForm() {
     setIsSubmitting(false);
 
     if (result.success) {
+      // Mostrar pantalla de confirmación
+      setIsSubmitted(true);
       // Opcional: Resetear el formulario
       // (event.target as HTMLFormElement).reset();
-      // O redirigir, o mostrar un mensaje de éxito más persistente
       console.log("Formulario enviado con éxito:", result.message);
     } else {
       console.error("Error al enviar el formulario:", result.message);
     }
   }
 
+  // Si el formulario fue enviado exitosamente, mostrar pantalla de confirmación
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+            <div className="text-center py-16 px-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-6 shadow-lg">
+                <CheckCircle className="w-10 h-10 text-white" />
+              </div>
+              <h1 className="text-2xl font-light text-gray-900 mb-4">
+                ¡Formulario Enviado!
+              </h1>
+              <p className="text-gray-600 mb-2">
+                Su solicitud de certificado médico ha sido enviada exitosamente.
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                Medical Certificate Form submitted successfully.
+              </p>
+              <p className="text-gray-600 mb-6">
+                En poco tiempo estaremos contactándole con los próximos pasos.
+              </p>
+              <button
+                onClick={() => setIsSubmitted(false)}
+                className="bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-md transition-colors duration-200"
+              >
+                Enviar otro formulario
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -391,9 +411,9 @@ export default function MedicalCertificateForm() {
             </div>
 
             {/* Mensajes de estado de envío */}
-            {submissionStatus && (
-              <div className={`p-4 rounded-md text-sm ${submissionStatus.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} flex items-center gap-2`}>
-                {submissionStatus.success ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+            {submissionStatus && !submissionStatus.success && (
+              <div className="p-4 rounded-md text-sm bg-red-50 text-red-700 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" />
                 {submissionStatus.message}
               </div>
             )}
@@ -415,7 +435,7 @@ export default function MedicalCertificateForm() {
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  Enviar Formulario
+                  {t("Submit")}
                 </>
               )}
             </button>
