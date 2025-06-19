@@ -8,8 +8,7 @@ import Images from "../../../assets"
 import countryNationality from "../../../data/countries"
 
 // Importar la clase de servicio y la interfaz de Course
-// Asegúrate de que esta ruta sea correcta según la ubicación de tu archivo courses.ts o courseServices.ts
-import { Course, CourseServices } from "../../../services/courses" // <--- REVISAR: Asegúrate que esta ruta sea la correcta (services/courses o services/courseServices)
+import { Course, CourseServices } from "../../../services/courses"
 
 // Importar iconos
 import {
@@ -25,15 +24,15 @@ import {
 
 import {
   governments,
-  getGovernmentInfo,
   calculateCoursePrice,
   calculateRenewalPrice,
-  isPanamanian,
 } from "../../../utils/pricing"
 import { CourseSelector } from "./components/course-selector"
 import CourseRenewalSelector from "../../../components/buttons/course-renewal-selector"
 import { QuoteSummary } from "./components/quote-summary"
-import { CustomCaptcha } from "../../../components/forms/custom-captcha"
+
+// CAMBIO 1: Importamos el nuevo componente en lugar del antiguo
+import { SimpleCheckboxCaptcha } from "../../../components/forms/SimpleCheckboxCaptcha"
 import { CustomCheckbox } from "../../../components/forms/custom-checkbox"
 import { CustomButton } from "../../../components/forms/custom-button"
 import { CustomInput } from "../../../components/forms/customInput"
@@ -107,9 +106,6 @@ export default function CourseQuote() {
     fetchCourses()
   }, []) // El array vacío asegura que se ejecute solo una vez al montar
 
-  // Obtener información del gobierno
-  const govInfo = getGovernmentInfo(formData.government)
-
   const handleInputChange = (field: string, value: string | string[]) => {
     setFormData((prev) => {
       const newData = {
@@ -128,10 +124,8 @@ export default function CourseQuote() {
       return newData
     })
   }
-
-  // --- REINTRODUCIDA Y MEJORADA ---
+  
   const calculateCosts = () => {
-    // AHORA USA apiCourses para encontrar los objetos completos
     const selectedNewCoursesData = apiCourses.filter((course) => formData.courses.includes(String(course.id)));
     const selectedRenewalCoursesData = apiCourses.filter((course) => formData.renewalCourses.includes(String(course.id)));
 
@@ -153,7 +147,6 @@ export default function CourseQuote() {
       totalCost,
     };
   };
-  // --- FIN REINTRODUCIDA Y MEJORADA ---
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -181,7 +174,7 @@ export default function CourseQuote() {
       return
     }
     if (!captchaVerified) {
-      alert(t("Please verify the captcha before continuing."))
+      alert(t("Please verify you are not a robot before continuing.")) // Mensaje actualizado
       return
     }
     if (!termsAccepted) {
@@ -191,27 +184,20 @@ export default function CourseQuote() {
 
     setIsLoading(true)
     try {
-      // Si submitRegistration necesita el formData completo y no devuelve los detalles del curso,
-      // la siguiente lógica es correcta. Si submitRegistration DEVOLVIERA los datos de RegistrationResult,
-      // entonces esta parte de la lógica cambiaría para usar lo que submitRegistration devuelve.
-      // Para este ejemplo, asumo que submitRegistration solo procesa el formulario.
-      await submitRegistration(formData); // Ejecuta la acción de envío del formulario si es necesario
-
+      await submitRegistration(formData); 
       const {
         selectedNewCoursesData,
         selectedRenewalCoursesData,
         newCoursesTotal,
         renewalCoursesTotal,
         totalCost,
-      } = calculateCosts(); // <-- USA LA FUNCIÓN REINTRODUCIDA
+      } = calculateCosts();
 
-      // Find selected government label
       const selectedGov = governments.find((g) => g.value === formData.government)
 
-      // Compose registration result
       const fixedResult: RegistrationResult = {
-        courses: selectedNewCoursesData, // Ya son Course[]
-        renewalCourses: selectedRenewalCoursesData, // Ya son Course[]
+        courses: selectedNewCoursesData,
+        renewalCourses: selectedRenewalCoursesData,
         studentInfo: {
           name: formData.name,
           lastName: formData.lastName,
@@ -240,7 +226,6 @@ export default function CourseQuote() {
     setRegistration(null)
   }
 
-  // MANEJO DE ESTADOS DE CARGA Y ERROR PARA LOS CURSOS
   if (loadingCourses) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -263,16 +248,14 @@ export default function CourseQuote() {
     )
   }
 
-
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
       <div className="max-w-2xl mx-auto">
         {!showConfirmation ? (
           <>
             {/* Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-6 shadow-lg">
+            <div className="text-center mb-4">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
                 <img src={Images.logo || "/placeholder.svg"} alt="logo" width={70} height={70} />
               </div>
               <h1 className="text-4xl font-light text-gray-900 mb-3">{t("Course Quote")}</h1>
@@ -290,7 +273,7 @@ export default function CourseQuote() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Name and Last Name */}
+                  {/* ... (resto de tus inputs de formulario sin cambios) ... */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -318,8 +301,6 @@ export default function CourseQuote() {
                       />
                     </div>
                   </div>
-
-                  {/* Document and Nationality */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label htmlFor="document" className="block text-sm font-medium text-gray-700 mb-2">
@@ -345,20 +326,8 @@ export default function CourseQuote() {
                         options={countryOptions}
                         icon={<GlobeIcon />}
                       />
-                      <p className="text-xs text-gray-500">
-                        {t("Determines whether you use prices for Panamanians or foreigners")}
-                        {formData.nationality && (
-                          <span className="block mt-1 font-medium">
-                            {isPanamanian(formData.nationality)
-                              ? t("✅ Panamanian prices")
-                              : t("🌍 Foreigner prices")}
-                          </span>
-                        )}
-                      </p>
                     </div>
                   </div>
-
-                  {/* Email and Phone */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -388,8 +357,6 @@ export default function CourseQuote() {
                       />
                     </div>
                   </div>
-
-                  {/* Government Selection */}
                   <div className="space-y-2">
                     <label htmlFor="government" className="block text-sm font-medium text-gray-700 mb-2">
                       {t("Government/Institution")} <span className="text-red-500">*</span>
@@ -401,16 +368,7 @@ export default function CourseQuote() {
                       options={governments}
                       icon={<GlobeIcon />}
                     />
-                    <p className="text-xs text-gray-500">
-                      {govInfo?.surcharge > 0
-                        ? t("A surcharge of {{surcharge}}% will be applied to the base price", {
-                            surcharge: govInfo.surcharge,
-                          })
-                        : t("No additional surcharge")}
-                    </p>
                   </div>
-
-                  {/* Course Selection */}
                   {formData.nationality && formData.government && (
                     <>
                       <div className="space-y-2">
@@ -429,7 +387,6 @@ export default function CourseQuote() {
                           availableCourses={apiCourses}
                         />
                       </div>
-
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           {t("Course Renewal")}
@@ -443,12 +400,9 @@ export default function CourseQuote() {
                             government={formData.government}
                             availableCourses={apiCourses}
                           />
-
                       </div>
                     </>
                   )}
-
-                  {/* Quote Summary */}
                   {formData.nationality &&
                     formData.government &&
                     (formData.courses.length > 0 || formData.renewalCourses.length > 0) && (
@@ -461,12 +415,15 @@ export default function CourseQuote() {
                       />
                     )}
 
-                  {/* CAPTCHA */}
+                  {/* CAMBIO 2: Reemplazamos el componente de CAPTCHA */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("CAPTCHA Verification")}
+                      {t("Security Verification")}
                     </label>
-                    <CustomCaptcha verified={captchaVerified} onVerify={setCaptchaVerified} />
+                    <SimpleCheckboxCaptcha
+                      verified={captchaVerified}
+                      onVerify={setCaptchaVerified}
+                    />
                   </div>
 
                   {/* Terms and Conditions */}
@@ -502,7 +459,7 @@ export default function CourseQuote() {
                         (formData.courses.length === 0 && formData.renewalCourses.length === 0) ||
                         !formData.nationality ||
                         !formData.government ||
-                        apiCourses.length === 0 // Deshabilita si los cursos no se han cargado
+                        apiCourses.length === 0
                       }
                       variant="primary"
                     >
@@ -521,9 +478,8 @@ export default function CourseQuote() {
             </div>
           </>
         ) : (
-          /* Confirmation View */
+          /* Confirmation View (sin cambios aquí) */
           <>
-            {/* Success Header */}
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-6 shadow-lg text-white">
                 <CheckIcon />
@@ -533,26 +489,27 @@ export default function CourseQuote() {
                 {t("Your quote has been generated successfully")}
               </p>
             </div>
-
-            {/* Confirmation Card */}
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="p-8">
-                <div className="mb-6">
+              <div className="p-4">
+                <div className="mb-4">
                   <h2 className="text-2xl font-light text-green-700 mb-2">{t("Quote Confirmed")}</h2>
                   <p className="text-gray-600">{t("Summary of your maritime course quote")}</p>
                 </div>
-
                 {registration && (
                   <>
-                    {/* Total Cost Highlight */}
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200 mb-6">
-                      <div className="text-center">
-                        <h3 className="text-lg font-semibold text-green-800 mb-2">{t("Total Cost")}</h3>
-                        <div className="text-4xl font-bold text-green-800">${registration.totalCost}</div>
-                      </div>
+                    {/* --- MENSAJE NUEVO --- */}
+                    {/* Se ha añadido este bloque para mostrar el mensaje solicitado */}
+                    <div className="bg-blue-50 border border-blue-200 text-center p-4 rounded-2xl mb-6">
+                      <p className="font-semibold text-blue-800">
+                        {t("Please check your email to see the full quote.")}
+                      </p>
                     </div>
+                    {/* --- FIN MENSAJE NUEVO --- */}
 
-                    {/* Selected Courses */}
+                    {/* --- BLOQUE DE PRECIO ELIMINADO --- */}
+                    {/* El div que mostraba el "Total Cost" ha sido eliminado de aquí. */}
+
+                    {/* --- LISTA DE CURSOS (SIN CAMBIOS) --- */}
                     <div className="space-y-4 mb-6">
                       {registration.courses.length > 0 && (
                         <div>
@@ -601,8 +558,8 @@ export default function CourseQuote() {
                         </div>
                       )}
                     </div>
+                    {/* --- FIN LISTA DE CURSOS --- */}
 
-                    {/* Student Info */}
                     <div className="bg-gray-50 p-6 rounded-2xl mb-6">
                       <h4 className="font-semibold text-gray-900 mb-4">{t("Student Details:")}</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
@@ -634,19 +591,11 @@ export default function CourseQuote() {
                         </div>
                       </div>
                     </div>
-
-                    {/* Action Buttons */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <CustomButton onClick={handleBack} variant="primary" className="bg-gray-600 hover:bg-gray-700">
                         <BackIcon />
                         {t("New Quote")}
                       </CustomButton>
-                      {/*
-                      <CustomButton onClick={downloadPDF} variant="secondary">
-                        <DownloadIcon />
-                        {t("Download PDF")}
-                      </CustomButton>
-                      */}
                     </div>
                   </>
                 )}
