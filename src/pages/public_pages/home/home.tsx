@@ -46,14 +46,14 @@ export default function Home() {
               {t("Physical Examination")}
             </a>
 
-            {/* 
+            
             <a
-              href="#"
+              href="/liberian"
               className="block bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100 text-lg font-semibold text-blue-900 w-full h-full hover:scale-[98%] transition-transform duration-200 ease-in-out"
             >
               { t('Liberia COC') }
             </a> 
-            */}
+           
 
           </div>
         </div>

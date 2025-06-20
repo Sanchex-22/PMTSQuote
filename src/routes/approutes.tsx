@@ -18,6 +18,7 @@ import CourseQuote from "../pages/public_pages/home/CourseQuote";
 import NotFound from "../pages/public_pages/not_found";
 import LicenseQuote from "../pages/public_pages/home/license/licence";
 import MedicalCertificateForm from "../pages/public_pages/home/medical-cert/MedicalCert";
+import LiberiaForm from "../pages/public_pages/home/liberian/LiberianForm";
 
 // Tipado de usuario
 export interface User {
@@ -112,6 +113,19 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
             publicRoute={true}
           >
             <MedicalCertificateForm />
+          </EnvolveLayout>
+        }/>
+        <Route path="/liberian" 
+        element={          
+        <EnvolveLayout
+            title="PmtsQ"
+            description="PmtsQ"
+            isLogged={isLogged}
+            profile={profile}
+            currentPathname={pathnameLocation}
+            publicRoute={true}
+          >
+            <LiberiaForm />
           </EnvolveLayout>
         }/>
       <Route
