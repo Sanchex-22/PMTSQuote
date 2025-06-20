@@ -19,6 +19,7 @@ import NotFound from "../pages/public_pages/not_found";
 import LicenseQuote from "../pages/public_pages/home/license/licence";
 import MedicalCertificateForm from "../pages/public_pages/home/medical-cert/MedicalCert";
 import LiberiaForm from "../pages/public_pages/home/liberian/LiberianForm";
+import PrivacyPolicy from "../pages/public_pages/PrivacyPolicy/Privacy";
 
 // Tipado de usuario
 export interface User {
@@ -75,9 +76,10 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         }
       />
       <Route path="/home" element={<Navigate to="/" replace />} />
-      <Route path="/courses" 
-        element={          
-        <EnvolveLayout
+      <Route
+        path="/courses"
+        element={
+          <EnvolveLayout
             title="PmtsQ"
             description="PmtsQ"
             isLogged={isLogged}
@@ -87,10 +89,12 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
           >
             <CourseQuote />
           </EnvolveLayout>
-        }/>
-      <Route path="/licenses" 
-        element={          
-        <EnvolveLayout
+        }
+      />
+      <Route
+        path="/licenses"
+        element={
+          <EnvolveLayout
             title="PmtsQ"
             description="PmtsQ"
             isLogged={isLogged}
@@ -100,11 +104,13 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
           >
             <LicenseQuote />
           </EnvolveLayout>
-        }/>
+        }
+      />
 
-      <Route path="/medical" 
-        element={          
-        <EnvolveLayout
+      <Route
+        path="/medical"
+        element={
+          <EnvolveLayout
             title="PmtsQ"
             description="PmtsQ"
             isLogged={isLogged}
@@ -114,10 +120,12 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
           >
             <MedicalCertificateForm />
           </EnvolveLayout>
-        }/>
-        <Route path="/liberian" 
-        element={          
-        <EnvolveLayout
+        }
+      />
+      <Route
+        path="/liberian"
+        element={
+          <EnvolveLayout
             title="PmtsQ"
             description="PmtsQ"
             isLogged={isLogged}
@@ -127,7 +135,23 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
           >
             <LiberiaForm />
           </EnvolveLayout>
-        }/>
+        }
+      />
+      <Route
+        path="/privacy"
+        element={
+          <EnvolveLayout
+            title="PmtsQ"
+            description="PmtsQ"
+            isLogged={isLogged}
+            profile={profile}
+            currentPathname={pathnameLocation}
+            publicRoute={true}
+          >
+            <PrivacyPolicy />
+          </EnvolveLayout>
+        }
+      />
       <Route
         path="/login"
         element={
@@ -227,7 +251,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               authRoles.moderator,
               authRoles.super_admin,
             ]}
-          >p
+          >
+            p
             <EnvolveLayout
               title="certs"
               description="certs"

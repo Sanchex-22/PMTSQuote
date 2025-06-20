@@ -34,7 +34,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
 
     <>
       <Headers title={title} description={description} />
-      <main className="w-full relative">
+      <main className="w-full relative min-h-screen">
         {publicRoute ? 
         <>
         <Navbar

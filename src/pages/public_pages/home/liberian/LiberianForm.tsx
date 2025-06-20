@@ -391,7 +391,7 @@ const LiberiaForm: FC = () => {
     }, [personalInfo, idPhotoFile, passportPhotoFile, rlm105File, selectedRank, certificates, confirmRequirements, cocStatus]);
 
     return (
-        <div className="font-sans bg-gradient-to-br from-blue-50 to-gray-200 p-5 min-h-screen leading-relaxed">
+        <div className="font-sans bg-gradient-to-br from-blue-50 to-gray-200 p-1 min-h-screen leading-relaxed">
             <div className="container max-w-7xl mx-auto">
                 <h2 className="text-center text-blue-800 mb-8 text-3xl md:text-4xl font-bold text-shadow">
                     🚢 Application Form for Examination - Liberian Officers
