@@ -16,6 +16,7 @@ interface PersonalInfo {
   totalExperience: string
   lastVessel: string
   vesselTypes: string
+  otherCurrentRank: string
 }
 
 interface CertificateData {
@@ -395,6 +396,7 @@ const LiberiaForm: FC = () => {
     totalExperience: "",
     lastVessel: "",
     vesselTypes: "",
+    otherCurrentRank: "",
   })
   const [idPhotoFile, setIdPhotoFile] = useState<File | null>(null)
   const [passportPhotoFile, setPassportPhotoFile] = useState<File | null>(null)
@@ -1010,6 +1012,49 @@ const LiberiaForm: FC = () => {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Campo de Rango Actual - NUEVO */}
+          <div className={boxStyles}>
+            <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">
+              👨‍✈️ Rango Actual / Current Rank
+            </h3>
+            <div className="form-group">
+              <label htmlFor="currentRankDetail" className={labelStyles}>
+                Rango Actual *
+              </label>
+              <select
+                id="currentRankDetail"
+                value={personalInfo.currentRank}
+                onChange={handlePersonalInfoChange}
+                className={inputStyles}
+                required
+              >
+                <option value="">-- Seleccione su rango actual --</option>
+                {Object.keys(RANK_DISPLAY_NAMES).map((key) => (
+                  <option key={key} value={key}>
+                    {RANK_DISPLAY_NAMES[key]}
+                  </option>
+                ))}
+                <option value="other">Otro rango / Other rank</option>
+              </select>
+            </div>
+            {personalInfo.currentRank === "other" && (
+              <div className="form-group mt-4">
+                <label htmlFor="otherCurrentRank" className={labelStyles}>
+                  Especifique su rango actual / Specify your current rank
+                </label>
+                <input
+                  type="text"
+                  id="otherCurrentRank"
+                  placeholder="Escriba su rango actual"
+                  value={personalInfo.otherCurrentRank}
+                  onChange={handlePersonalInfoChange}
+                  className={inputStyles}
+                  required
+                />
+              </div>
+            )}
           </div>
 
           {/* Rank Selection - MODIFICADO PARA MOSTRAR SOLO LOS 6 RANGOS */}
