@@ -12,11 +12,12 @@ interface PersonalInfo {
   phone: string
   birthDate: string
   address: string
-  currentRank: string
+  currentRankText: string // Cambiar de currentRank a currentRankText
   totalExperience: string
   lastVessel: string
   vesselTypes: string
   otherCurrentRank: string
+  currentRankDetail: string // Nuevo campo para el dropdown
 }
 
 interface CertificateData {
@@ -392,11 +393,12 @@ const LiberiaForm: FC = () => {
     phone: "",
     birthDate: "",
     address: "",
-    currentRank: "",
+    currentRankText: "", // Cambiar nombre
     totalExperience: "",
     lastVessel: "",
     vesselTypes: "",
     otherCurrentRank: "",
+    currentRankDetail: "", // Nuevo campo
   })
   const [idPhotoFile, setIdPhotoFile] = useState<File | null>(null)
   const [passportPhotoFile, setPassportPhotoFile] = useState<File | null>(null)
@@ -544,7 +546,7 @@ const LiberiaForm: FC = () => {
     if (!personalInfo.nationality.trim()) errs.push("Nationality is required")
     if (!personalInfo.cocFlag.trim()) errs.push("COC flag state is required")
     if (!personalInfo.email.trim()) errs.push("Email address is required")
-    if (!personalInfo.currentRank.trim()) errs.push("Current rank is required")
+    if (!personalInfo.currentRankText.trim()) errs.push("Current rank is required")
     if (cocStatus === "sanctioned") errs.push("Selected COC flag state is not eligible due to sanctions")
     if (!idPhotoFile) errs.push("ID photo is required")
     if (!passportPhotoFile) errs.push("Passport photo is required")
@@ -833,13 +835,13 @@ const LiberiaForm: FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="form-group">
-                <label htmlFor="currentRank" className={labelStyles}>
+                <label htmlFor="currentRankText" className={labelStyles}>
                   Current Rank *
                 </label>
                 <input
                   type="text"
-                  id="currentRank"
-                  value={personalInfo.currentRank}
+                  id="currentRankText"
+                  value={personalInfo.currentRankText}
                   onChange={handlePersonalInfoChange}
                   placeholder="e.g.: OS, NWO, etc."
                   className={inputStyles}
@@ -1025,7 +1027,7 @@ const LiberiaForm: FC = () => {
               </label>
               <select
                 id="currentRankDetail"
-                value={personalInfo.currentRank}
+                value={personalInfo.currentRankDetail}
                 onChange={handlePersonalInfoChange}
                 className={inputStyles}
                 required
@@ -1039,7 +1041,7 @@ const LiberiaForm: FC = () => {
                 <option value="other">Otro rango / Other rank</option>
               </select>
             </div>
-            {personalInfo.currentRank === "other" && (
+            {personalInfo.currentRankDetail === "other" && (
               <div className="form-group mt-4">
                 <label htmlFor="otherCurrentRank" className={labelStyles}>
                   Especifique su rango actual / Specify your current rank
