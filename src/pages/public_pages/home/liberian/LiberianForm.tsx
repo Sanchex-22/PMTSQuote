@@ -1,7 +1,4 @@
 import React, { useState, useEffect, useCallback, FC } from 'react';
-import { jsPDF } from 'jspdf';
-
-// --- Interfaces y Tipos de Datos ---
 
 interface PersonalInfo {
   fullName: string;
@@ -28,8 +25,6 @@ interface CertificateData {
   expiryDate: string;
   issuingAuthority: string;
 }
-
-// --- Constantes ---
 
 const requirements: Record<string, { previous: string; experience: string; courses: Omit<CertificateData, 'file' | 'certificateNumber' | 'issueDate' | 'expiryDate' | 'issuingAuthority'>[] }> = {
     os: {
@@ -173,16 +168,11 @@ const stcwCountries = [
     { value: "vietnam", label: "Viet Nam" },
 ];
 
-
-// --- Tailwind CSS Class Strings ---
 const inputStyles = "w-full p-3 rounded-lg border-2 border-gray-300 text-sm transition-colors duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
 const labelStyles = "block mb-1.5 font-semibold text-gray-700 text-sm";
 const boxStyles = "bg-white p-6 rounded-xl shadow-md mb-6 border border-gray-200";
 const formGridStyles = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5";
 const photoGridStyles = "grid grid-cols-1 md:grid-cols-2 gap-5 mt-5";
-
-
-// --- Component ---
 
 const LiberiaForm: FC = () => {
     // --- State ---
@@ -373,62 +363,6 @@ const LiberiaForm: FC = () => {
         // Optionally, reset form here
     };
 
-    const downloadRLM105PDF = () => {
-        const doc = new jsPDF();
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-        
-        let y = 20;
-        const lineHeight = 6;
-        const pageWidth = doc.internal.pageSize.width;
-        const margin = 20;
-
-        const addCenteredText = (text: string, yPos: number, fontSize = 12, style = "normal") => {
-            doc.setFontSize(fontSize);
-            doc.setFont("helvetica", style);
-            const textWidth = doc.getTextWidth(text);
-            doc.text(text, (pageWidth - textWidth) / 2, yPos);
-            return yPos + lineHeight;
-        };
-        const addFieldLine = (label: string, yPos: number, lineLength = 100) => {
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(label, margin, yPos);
-            const labelWidth = doc.getTextWidth(label);
-            doc.line(margin + labelWidth + 2, yPos, margin + labelWidth + 2 + lineLength, yPos);
-            return yPos + lineHeight + 2;
-        };
-        
-        y = addCenteredText("REPUBLIC OF LIBERIA", y, 14, "bold");
-        y = addCenteredText("OFFICE OF THE DEPUTY COMMISSIONER", y, 12, "bold");
-        y = addCenteredText("ANNEX 1", y, 12, "bold");
-        y = addCenteredText("APPLICATION FOR OFFICER CERTIFICATE OF COMPETENCE", y, 12, "bold");
-        y += 10;
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "bold");
-        doc.text("PART I. PERSONAL DESCRIPTION AND INFORMATION: (Type or print clearly)", margin, y);
-        y += 10;
-        y = addFieldLine("1. LAST NAME: ", y, 60);
-        y = addFieldLine("   FIRST NAME: ", y-8, 60);
-        y = addFieldLine("   Middle Initial: ", y-8, 20);
-        // ... (rest of the PDF generation logic from original HTML can be added here for completeness) ...
-        doc.text("...", margin, y);
-        doc.text("This is a placeholder for the full RLM-105 form generation.", margin, y + 10);
-        doc.text("Please complete the PDF generation logic as per original file.", margin, y + 20);
-        
-        doc.save('RLM-105_Official_Form_Liberia.pdf');
-        
-        alert('📥 RLM-105 form successfully downloaded in PDF format!\n\n' +
-              'The official document has been generated and downloaded.\n\n' +
-              'Instructions:\n' +
-              '1. Complete all fields in the form\n' +
-              '2. Sign in the required sections (especially block #21)\n' +
-              '3. Scan or photograph the completed document in high quality\n' +
-              '4. Upload the file using the upload button\n\n' +
-              'The RLM-105 form is mandatory to process your application.');
-    };
-    
-    // --- Effects ---
     useEffect(() => {
         const totalSteps = 6;
         let completedSteps = 0;
@@ -456,7 +390,6 @@ const LiberiaForm: FC = () => {
 
     }, [personalInfo, idPhotoFile, passportPhotoFile, rlm105File, selectedRank, certificates, confirmRequirements, cocStatus]);
 
-    // --- Render ---
     return (
         <div className="font-sans bg-gradient-to-br from-blue-50 to-gray-200 p-5 min-h-screen leading-relaxed">
             <div className="container max-w-7xl mx-auto">
@@ -472,7 +405,6 @@ const LiberiaForm: FC = () => {
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    {/* Personal Information */}
                     <div className={boxStyles}>
                         <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">👤 Applicant's Personal Information</h3>
                         <div className={formGridStyles}>
@@ -575,9 +507,9 @@ const LiberiaForm: FC = () => {
                                 </ol>
                             </div>
                             <div className="mb-4">
-                                <button type="button" onClick={downloadRLM105PDF} className="bg-gradient-to-br from-green-600 to-green-800 text-white px-5 py-3 rounded-lg font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                                <a download href={"/files/RLM-105_LISCR_APPLICATION_FORM.pdf"} className="bg-gradient-to-br from-green-600 to-green-800 text-white px-5 py-3 rounded-lg font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2">
                                     📥 Download RLM-105 Form (PDF)
-                                </button>
+                                </a>
                             </div>
                             <div className="upload-section mt-4 bg-white p-4 border rounded-lg">
                                 <label htmlFor="rlm105Upload" className={labelStyles}>Upload Completed RLM-105 Form *</label>
