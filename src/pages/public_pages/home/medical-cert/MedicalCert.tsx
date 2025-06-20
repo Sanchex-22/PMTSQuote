@@ -1,10 +1,10 @@
 "use client"; // ¡Importante!
-
+ 
 import { useState } from "react"; // Para mostrar el nombre del archivo seleccionado
 import { User, Weight, Ruler, MapPin, Eye, Heart, Pill, Scissors, Shield, TestTube, Upload, Send, Stethoscope, CheckCircle, AlertTriangle } from 'lucide-react';
 import { submitMedicalCertificate } from "../../../../actions/PhysicalActions";
 import { useTranslation } from "react-i18next";
-
+ 
 // Componente auxiliar para el input de archivo con feedback visual
 function FileInput({
   name,
@@ -21,7 +21,7 @@ function FileInput({
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  
+ 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -40,7 +40,7 @@ function FileInput({
       setFilePreview(null);
     }
   };
-
+ 
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -71,7 +71,7 @@ function FileInput({
     </div>
   );
 }
-
+ 
 export default function MedicalCertificateForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<{
@@ -84,13 +84,13 @@ export default function MedicalCertificateForm() {
     event.preventDefault(); // Prevenir el comportamiento por defecto si queremos manejar el estado
     setIsSubmitting(true);
     setSubmissionStatus(null);
-
+ 
     const formData = new FormData(event.currentTarget);
     const result = await submitMedicalCertificate(formData);
-
+ 
     setSubmissionStatus(result);
     setIsSubmitting(false);
-
+ 
     if (result.success) {
       // Mostrar pantalla de confirmación
       setIsSubmitted(true);
@@ -101,7 +101,7 @@ export default function MedicalCertificateForm() {
       console.error("Error al enviar el formulario:", result.message);
     }
   }
-
+ 
   // Si el formulario fue enviado exitosamente, mostrar pantalla de confirmación
   if (isSubmitted) {
     return (
@@ -136,7 +136,7 @@ export default function MedicalCertificateForm() {
       </div>
     );
   }
-
+ 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
@@ -149,7 +149,7 @@ export default function MedicalCertificateForm() {
             <h1 className="text-2xl font-light text-gray-900 mb-2">Formulario para Certificado Médico</h1>
             <p className="text-sm text-gray-600">Medical Certificate Form</p>
           </div>
-
+ 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-8">
             {/* Información Personal */}
@@ -157,24 +157,57 @@ export default function MedicalCertificateForm() {
               <h3 className="text-lg font-medium text-gray-900 border-b border-gray-100 pb-2">
                 Información Personal / Personal Information
               </h3>
-
+ 
               <div>
-                <label htmlFor="posicion" className="block text-sm font-medium text-gray-700 mb-2">
-                  Posición a Bordo / Position on-board
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    id="posicion"
-                    name="posicion"
-                    required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
-                    placeholder="Ej: Capitán, Ingeniero, Cocinero"
-                  />
-                </div>
-              </div>
-
+  <label htmlFor="posicion" className="block text-sm font-medium text-gray-700 mb-2">
+    Posición a Bordo / Position on-board
+  </label>
+  <div className="relative">
+    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+    <select
+      id="posicion"
+      name="posicion"
+      required
+      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors appearance-none bg-white"
+    >
+      <option value="">Seleccione una opción</option>
+      <option>Capitán / Master</option>
+      <option>Primer Oficial de Cubierta / Chief Mate</option>
+      <option>Segundo Oficial de Cubierta / Second Mate</option>
+      <option>Tercer Oficial de Cubierta / Third Mate</option>
+      <option>Oficial de Guardia de Navegación / OOW (Officer of the Watch)</option>
+      <option>Piloto / Pilot</option>
+      <option>Contramaestre / Bosun</option>
+      <option>Marinero de Primera / Able Seaman (AB)</option>
+      <option>Marinero Ordinario / Ordinary Seaman (OS)</option>
+      <option>Timonel / Helmsman</option>
+      <option>Cadete de Cubierta / Deck Cadet</option>
+      <option>Jefe de Máquinas / Chief Engineer</option>
+      <option>Segundo Ingeniero / Second Engineer</option>
+      <option>Tercer Ingeniero / Third Engineer</option>
+      <option>Cuarto Ingeniero / Fourth Engineer</option>
+      <option>Oficial de Guardia de Máquinas / EOOW (Engineer Officer of the Watch)</option>
+      <option>Electricista de Buque / Marine Electrician</option>
+      <option>Oiler / Engrasador</option>
+      <option>Motorman / Motorista</option>
+      <option>Cadete de Máquinas / Engine Cadet</option>
+      <option>Refrigeration Engineer</option>
+      <option>Jefe de Mayordomía / Chief Steward</option>
+      <option>Mayordomo / Steward</option>
+      <option>Cocinero / Cook</option>
+      <option>Ayudante de Cocina / Messman o Galley Utility</option>
+      <option>Encargado de Limpieza / Cabin Boy o Utility</option>
+      <option>Oficial de Seguridad / Safety Officer</option>
+      <option>Oficial de Protección / Ship Security Officer (SSO)</option>
+      <option>Médico o Enfermero / Ship Doctor or Medic</option>
+      <option>Técnico de Comunicaciones / Radio Operator (GMDSS)</option>
+      <option>Ingeniero Electrónico / Electro-Technical Officer (ETO)</option>
+      <option>Personal de Helipuerto / HLO (Helicopter Landing Officer)</option>
+    </select>
+  </div>
+</div>
+ 
+ 
               <div>
                 <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">
                   Nombre completo / Complete Name
@@ -191,7 +224,7 @@ export default function MedicalCertificateForm() {
                   />
                 </div>
               </div>
-
+ 
               {/* ===== CAMPO AGREGADO ===== */}
               <FileInput
                 name="documento_identidad"
@@ -201,7 +234,7 @@ export default function MedicalCertificateForm() {
                 required
               />
               {/* ===== FIN DEL CAMPO AGREGADO ===== */}
-
+ 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="peso" className="block text-sm font-medium text-gray-700 mb-2">
@@ -219,7 +252,7 @@ export default function MedicalCertificateForm() {
                     />
                   </div>
                 </div>
-
+ 
                 <div>
                   <label htmlFor="altura" className="block text-sm font-medium text-gray-700 mb-2">
                     Altura / Height
@@ -237,7 +270,7 @@ export default function MedicalCertificateForm() {
                   </div>
                 </div>
               </div>
-
+ 
               <div>
                 <label htmlFor="direccion" className="block text-sm font-medium text-gray-700 mb-2">
                   Dirección / Address
@@ -254,7 +287,7 @@ export default function MedicalCertificateForm() {
                   />
                 </div>
               </div>
-
+ 
               <div>
                 <label htmlFor="gafas" className="block text-sm font-medium text-gray-700 mb-2">
                   ¿Usa gafas? / Eyeglasses
@@ -275,13 +308,13 @@ export default function MedicalCertificateForm() {
                 </div>
               </div>
             </div>
-
+ 
             {/* Información Médica */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-900 border-b border-gray-100 pb-2">
                 Información Médica / Medical Information
               </h3>
-
+ 
               <div>
                 <label htmlFor="condiciones" className="block text-sm font-medium text-gray-700 mb-2">
                   Condiciones Médicas / Medical Conditions
@@ -297,7 +330,7 @@ export default function MedicalCertificateForm() {
                   />
                 </div>
               </div>
-
+ 
               <div>
                 <label htmlFor="prescripcion" className="block text-sm font-medium text-gray-700 mb-2">
                   Prescripción Médica / Medical Prescription
@@ -313,7 +346,7 @@ export default function MedicalCertificateForm() {
                   />
                 </div>
               </div>
-
+ 
               <div>
                 <label htmlFor="cirugia" className="block text-sm font-medium text-gray-700 mb-2">
                   Última Cirugía / Last Surgery
@@ -333,13 +366,13 @@ export default function MedicalCertificateForm() {
                 </div>
               </div>
             </div>
-
+ 
             {/* Información COVID */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-900 border-b border-gray-100 pb-2">
                 Información COVID / COVID Information
               </h3>
-
+ 
               <div>
                 <label htmlFor="tipo_vacuna" className="block text-sm font-medium text-gray-700 mb-2">
                   Vacuna COVID / COVID Vaccine (Pfizer, AstraZeneca, Johnson, etc.)
@@ -355,7 +388,7 @@ export default function MedicalCertificateForm() {
                   />
                 </div>
               </div>
-
+ 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="ultimo_positivo" className="block text-sm font-medium text-gray-700 mb-2">
@@ -372,7 +405,7 @@ export default function MedicalCertificateForm() {
                     />
                   </div>
                 </div>
-
+ 
                 <div>
                   <label htmlFor="ultimo_test" className="block text-sm font-medium text-gray-700 mb-2">
                     Último test COVID / Last COVID Test
@@ -390,7 +423,7 @@ export default function MedicalCertificateForm() {
                 </div>
               </div>
             </div>
-
+ 
             {/* Exámenes Físicos */}
             <div className="space-y-6">
               <div>
@@ -399,17 +432,23 @@ export default function MedicalCertificateForm() {
                 </h3>
                 <p className="text-sm text-gray-600 mb-6">Physical Examinations for Panama and Cook's license (si no aplica, puede dejarlos vacíos)</p>
               </div>
-
+ 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FileInput name="blood_count" label="Hemograma completo / Blood count" accept=".pdf,image/*" />
-                <FileInput name="chemistry" label="Química (Creatinina, Glucosa) / Chemistry" accept=".pdf,image/*" />
-                <FileInput name="rh_type" label="Tipo RH / RH type" accept=".pdf,image/*" />
-                <FileInput name="drug_test" label="Prueba de drogas / Drug Test" accept=".pdf,image/*" />
-                <FileInput name="urinalysis" label="Análisis de orina / Urinalysis" accept=".pdf,image/*" />
-                <FileInput name="stool_test" label="Examen de heces / Stool test" accept=".pdf,image/*" />
-              </div>
+                   <FileInput name="blood_count" label="Hemograma completo / Blood count" accept=".pdf,image/*" />
+                   <FileInput name="chemistry" label="Química (Creatinina, Glucosa) / Chemistry" accept=".pdf,image/*" />
+                   <FileInput name="rh_type" label="Tipo RH / RH type" accept=".pdf,image/*" />
+                   <FileInput name="drug_test" label="Prueba de drogas / Drug Test" accept=".pdf,image/*" />
+                   <FileInput name="urinalysis" label="Análisis de orina / Urinalysis" accept=".pdf,image/*" />
+                   <FileInput
+                      name="stool_test"
+                     label="Examen de heces / Stool test"
+                     subLabel="Solo requerido para certificado médico de Cocinero"
+                     accept=".pdf,image/*"
+                      />
             </div>
-
+ 
+            </div>
+ 
             {/* Mensajes de estado de envío */}
             {submissionStatus && !submissionStatus.success && (
               <div className="p-4 rounded-md text-sm bg-red-50 text-red-700 flex items-center gap-2">
@@ -417,7 +456,7 @@ export default function MedicalCertificateForm() {
                 {submissionStatus.message}
               </div>
             )}
-
+ 
             {/* Botón de envío */}
             <button
               type="submit"
