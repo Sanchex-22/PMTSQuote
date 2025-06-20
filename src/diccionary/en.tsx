@@ -108,6 +108,8 @@ const en = {
     "Last COVID Test" : "Última prueba COVID",
     "Physical Exams Only Panama and for Cook's License": "Exámenes físicos solo Panamá y para Licencia de Cocinero",
     "Physical Examinations for Panama and Cook's license (if not applicable, you can leave them blank)": "Exámenes físicos para Panamá y licencia de cocinero (si no aplica, puedes dejarlos en blanco)",
+    "It's not you, it's us": "No eres tú, somos nosotros",
+    "Go to home page" :"Volver a la página de inicio",
   }
 };
 

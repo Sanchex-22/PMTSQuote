@@ -88,7 +88,8 @@ const es = {
     "o arrastre aquí": "or drag here",
     "Enviar": "Submit",
     "Escribe aquí tu consulta sobre las licencias que necesitas...": "Write your query here about the licenses you need...",
-
+    "No eres tú, somos nosotros": "It's not you, it's us",
+    "Volver a la página de inicio": "Go to home page",
   }
 };
 
