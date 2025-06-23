@@ -6,6 +6,7 @@ import AdminNavbar from "./adminNavbar";
 import Footer from "./footer";
 import Navbar from "./navbar";
 import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/react"
 interface CurrentPathname {
   name: string;
 }
@@ -53,6 +54,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         <div className="page-content">
           {children}
           <Analytics />
+          <SpeedInsights />
         </div>
         {/* <WhatsappButton/> */}
       </main>
