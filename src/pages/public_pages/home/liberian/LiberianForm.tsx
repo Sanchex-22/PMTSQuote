@@ -628,7 +628,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       type="file"
                       id="idPhoto"
                       name="idPhotoFile" // Añadir name
-                      accept=".jpg,.jpeg,.png"
+                      accept=".pdf,.jpg,.jpeg,.png"
                       onChange={(e) => handlePhotoUpload(e, "id")}
                       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                       required={!idPhotoFile}
@@ -664,7 +664,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       type="file"
                       id="passportPhoto"
                       name="passportPhotoFile" // Añadir name
-                      accept=".jpg,.jpeg,.png"
+                      accept=".pdf,.jpg,.jpeg,.png"
                       onChange={(e) => handlePhotoUpload(e, "passport")}
                       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                       required={!passportPhotoFile}
