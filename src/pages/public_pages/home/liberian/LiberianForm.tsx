@@ -623,7 +623,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     <p className="text-base font-semibold mb-2">
                       Upload ID photo
                     </p>
-                    <p className="text-sm text-gray-500">JPG, PNG (Max 5MB)</p>
+                    <p className="text-sm text-gray-500">JPG, PNG, PDF (Max 5MB)</p>
                     <input
                       type="file"
                       id="idPhoto"
@@ -659,7 +659,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     <p className="text-base font-semibold mb-2">
                       Upload passport photo
                     </p>
-                    <p className="text-sm text-gray-500">JPG, PNG (Max 5MB)</p>
+                    <p className="text-sm text-gray-500">JPG, PNG, PDF (Max 5MB)</p>
                     <input
                       type="file"
                       id="passportPhoto"
