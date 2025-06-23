@@ -23,9 +23,7 @@ export async function submitMedicalCertificate(formData: FormData) {
   try { // Movido el try para englobar la lógica de fetch
     const response = await fetch(`${VITE_API_URL}/api/physical/physical-quote`, {
       method: "POST",
-      body: formData, // formData ya contiene los archivos y otros campos.
-                     // fetch se encargará de establecer el Content-Type a multipart/form-data
-                     // con el boundary correcto.
+      body: formData,
     });
 
     if (!response.ok) {
@@ -33,25 +31,18 @@ export async function submitMedicalCertificate(formData: FormData) {
       try {
         errorData = await response.json();
       } catch (e) {
-        // Si el cuerpo del error no es JSON, usa el statusText
         errorData = { message: `Error del servidor: ${response.status} ${response.statusText}` };
       }
       console.error("Error de la API externa:", errorData);
-      // Es mejor retornar el error estructurado en lugar de lanzar una excepción
-      // si quieres manejarlo de forma consistente en el cliente.
-      // O puedes lanzar y que el catch más externo lo maneje. Para este caso, retornemos.
       return { success: false, message: errorData.message || "Hubo un problema al contactar al servidor externo." };
     }
 
     const responseData = await response.json(); // Asumiendo que la API devuelve JSON en éxito
     console.log("Respuesta exitosa de la API externa:", responseData);
 
-    // Opcional: Revalidar una ruta si los datos cambian algo que se muestra en ella
-    // revalidatePath('/alguna-ruta-que-mostrar-certificados');
-
     return { success: true, message: responseData.message || "¡Solicitud enviada con éxito! Nos pondremos en contacto pronto." , data: responseData };
 
-  } catch (error: unknown) { // Este catch ahora es para errores de red o errores inesperados en fetch/json
+  } catch (error: unknown) {
     console.error("Error en la Server Action al contactar la API externa:", error);
     let errorMessage = "No se pudo enviar la solicitud. Intente de nuevo.";
     if (error instanceof Error) {

@@ -1,389 +1,39 @@
-"use client"
+"use client"; // ¡Muy importante! Define este componente como un Client Component.
 
-import type React from "react"
-import { useState, useEffect, useCallback, type FC } from "react"
+import type React from "react";
+import { useState, useEffect, useCallback, type FC } from "react";
+import { submitApplication } from "../../../../actions/liberianActions";
+import stcwCountries from "../../../../data/stcwCountries";
+import sanctionedCountries from "../../../../data/sanctionedCountries";
+import { CertificateData, RANK_DISPLAY_NAMES, requirements } from "../../../../data/rankDisplayName";
 
 interface PersonalInfo {
-  fullName: string
-  passport: string
-  nationality: string
-  cocFlag: string
-  email: string
-  phone: string
-  birthDate: string
-  address: string
-  currentRankText: string
-  totalExperience: string
-  lastVessel: string
-  vesselTypes: string
-  otherCurrentRank: string
-  currentRankDetail: string
+  fullName: string;
+  passport: string;
+  nationality: string;
+  cocFlag: string;
+  email: string;
+  phone: string;
+  birthDate: string;
+  address: string;
+  currentRankText: string;
+  totalExperience: string;
+  lastVessel: string;
+  vesselTypes: string;
+  otherCurrentRank: string;
+  currentRankDetail: string;
 }
 
-interface CertificateData {
-  courseName: string
-  description: string
-  required: boolean
-  file: File | null
-  certificateNumber: string
-  issueDate: string
-  expiryDate: string
-  issuingAuthority: string
-}
+const nonSTCWCountries = ["other"];
 
-// RANGOS ACTUALIZADOS - Solo los 6 rangos especificados
-const requirements: Record<
-  string,
-  {
-    previous: string
-    experience: string
-    courses: Omit<CertificateData, "file" | "certificateNumber" | "issueDate" | "expiryDate" | "issuingAuthority">[]
-  }
-> = {
-  oowd: {
-    previous: "Graduate from recognized nautical school",
-    experience: "3 years of service (max. 2 years in school) + 6 months supervised practice",
-    courses: [
-      {
-        courseName: "Basic Training",
-        required: true,
-        description: "Basic maritime safety training",
-      },
-      {
-        courseName: "Radar Observer / ARPA",
-        required: true,
-        description: "Radar observer and ARPA",
-      },
-      {
-        courseName: "Advanced Firefighting",
-        required: true,
-        description: "Advanced firefighting",
-      },
-      {
-        courseName: "Survival Craft",
-        required: true,
-        description: "Survival craft handling",
-      },
-      {
-        courseName: "GMDSS",
-        required: true,
-        description: "Global Maritime Distress and Safety System",
-      },
-      {
-        courseName: "Bridge Resource Management",
-        required: true,
-        description: "Bridge resource management",
-      },
-      {
-        courseName: "ECDIS",
-        required: true,
-        description: "Electronic Chart Display and Information System",
-      },
-      {
-        courseName: "Security Awareness",
-        required: true,
-        description: "Security awareness",
-      },
-    ],
-  },
-  chiefMate: {
-    previous: "Officer in Charge of a Navigational Watch",
-    experience: "2 years as OOWD",
-    courses: [
-      {
-        courseName: "Basic Training",
-        required: true,
-        description: "Basic maritime safety training",
-      },
-      {
-        courseName: "Advanced Firefighting",
-        required: true,
-        description: "Advanced firefighting",
-      },
-      {
-        courseName: "Medical Care",
-        required: true,
-        description: "Medical care on board",
-      },
-      {
-        courseName: "Survival Craft",
-        required: true,
-        description: "Survival craft handling",
-      },
-      {
-        courseName: "GMDSS",
-        required: true,
-        description: "Global Maritime Distress and Safety System",
-      },
-      {
-        courseName: "Bridge Resource Management",
-        required: true,
-        description: "Bridge resource management",
-      },
-      {
-        courseName: "ECDIS",
-        required: true,
-        description: "Electronic Chart Display and Information System",
-      },
-      {
-        courseName: "Security Awareness",
-        required: true,
-        description: "Security awareness",
-      },
-    ],
-  },
-  master: {
-    previous: "Chief Mate II/2",
-    experience: "1 year as Chief Mate",
-    courses: [
-      {
-        courseName: "Basic Training",
-        required: true,
-        description: "Basic maritime safety training",
-      },
-      {
-        courseName: "Advanced Firefighting",
-        required: true,
-        description: "Advanced firefighting",
-      },
-      {
-        courseName: "Medical Care",
-        required: true,
-        description: "Medical care on board",
-      },
-      {
-        courseName: "Survival Craft",
-        required: true,
-        description: "Survival craft handling",
-      },
-      {
-        courseName: "GMDSS",
-        required: true,
-        description: "Global Maritime Distress and Safety System",
-      },
-      {
-        courseName: "Bridge Resource Management",
-        required: true,
-        description: "Bridge resource management",
-      },
-      {
-        courseName: "ECDIS",
-        required: true,
-        description: "Electronic Chart Display and Information System",
-      },
-      {
-        courseName: "Security Awareness",
-        required: true,
-        description: "Security awareness",
-      },
-    ],
-  },
-  oowe: {
-    previous: "30-month approved course + practice",
-    experience: "6 months supervised in engine room",
-    courses: [
-      {
-        courseName: "Basic Training",
-        required: true,
-        description: "Basic maritime safety training",
-      },
-      {
-        courseName: "Advanced Firefighting",
-        required: true,
-        description: "Advanced firefighting",
-      },
-      {
-        courseName: "Survival Craft",
-        required: true,
-        description: "Survival craft handling",
-      },
-      {
-        courseName: "High Voltage",
-        required: true,
-        description: "High voltage handling",
-      },
-      {
-        courseName: "Engine Resource Management",
-        required: true,
-        description: "Engine resource management",
-      },
-      {
-        courseName: "Security Awareness",
-        required: true,
-        description: "Security awareness",
-      },
-    ],
-  },
-  secondEng: {
-    previous: "Officer in Charge of an Engineering Watch",
-    experience: "2 years as OOWE",
-    courses: [
-      {
-        courseName: "Basic Training",
-        required: true,
-        description: "Basic maritime safety training",
-      },
-      {
-        courseName: "Advanced Firefighting",
-        required: true,
-        description: "Advanced firefighting",
-      },
-      {
-        courseName: "Medical Care",
-        required: true,
-        description: "Medical care on board",
-      },
-      {
-        courseName: "Survival Craft",
-        required: true,
-        description: "Survival craft handling",
-      },
-      {
-        courseName: "High Voltage",
-        required: true,
-        description: "High voltage handling",
-      },
-      {
-        courseName: "Engine Resource Management",
-        required: true,
-        description: "Engine resource management",
-      },
-      {
-        courseName: "Security Awareness",
-        required: true,
-        description: "Security awareness",
-      },
-    ],
-  },
-  chiefEng: {
-    previous: "2nd Engineer III/2",
-    experience: "1 year as Second Engineer",
-    courses: [
-      {
-        courseName: "Basic Training",
-        required: true,
-        description: "Basic maritime safety training",
-      },
-      {
-        courseName: "Advanced Firefighting",
-        required: true,
-        description: "Advanced firefighting",
-      },
-      {
-        courseName: "Medical Care",
-        required: true,
-        description: "Medical care on board",
-      },
-      {
-        courseName: "Survival Craft",
-        required: true,
-        description: "Survival craft handling",
-      },
-      {
-        courseName: "High Voltage",
-        required: true,
-        description: "High voltage handling",
-      },
-      {
-        courseName: "Engine Resource Management",
-        required: true,
-        description: "Engine resource management",
-      },
-      {
-        courseName: "Security Awareness",
-        required: true,
-        description: "Security awareness",
-      },
-    ],
-  },
-}
-
-// Mapeo de los nombres completos para el dropdown
-const RANK_DISPLAY_NAMES: Record<string, string> = {
-  oowd: "Officer in Charge of a Navigational Watch (OOWD II/1)",
-  chiefMate: "Chief Mate II/2",
-  master: "Master II/2",
-  oowe: "Officer in Charge of an Engineering Watch (OOWE III/1)",
-  secondEng: "2nd Engineer III/2",
-  chiefEng: "Chief Engineer III/2",
-}
-
-const sanctionedCountries = ["iran", "cuba", "north-korea", "syria", "crimea"]
-const nonSTCWCountries = ["other"]
-
-const stcwCountries = [
-  { value: "antigua-barbuda", label: "Antigua and Barbuda" },
-  { value: "argentina", label: "Argentina" },
-  { value: "australia", label: "Australia" },
-  { value: "bahamas", label: "Bahamas" },
-  { value: "bahrain", label: "Bahrain" },
-  { value: "barbados", label: "Barbados" },
-  { value: "belgium", label: "Belgium" },
-  { value: "brazil", label: "Brazil" },
-  { value: "brunei", label: "Brunei Darussalam" },
-  { value: "bulgaria", label: "Bulgaria" },
-  { value: "canada", label: "Canada" },
-  { value: "cabo-verde", label: "Cabo Verde" },
-  { value: "chile", label: "Chile" },
-  { value: "china", label: "China" },
-  { value: "colombia", label: "Colombia" },
-  { value: "croatia", label: "Croatia" },
-  { value: "denmark", label: "Denmark" },
-  { value: "dominica", label: "Dominica" },
-  { value: "ecuador", label: "Ecuador" },
-  { value: "egypt", label: "Egypt" },
-  { value: "finland", label: "Finland" },
-  { value: "france", label: "France" },
-  { value: "germany", label: "Germany" },
-  { value: "greece", label: "Greece" },
-  { value: "hungary", label: "Hungary" },
-  { value: "iceland", label: "Iceland" },
-  { value: "india", label: "India" },
-  { value: "ireland", label: "Ireland" },
-  { value: "italy", label: "Italy" },
-  { value: "israel", label: "Israel" },
-  { value: "jamaica", label: "Jamaica" },
-  { value: "japan", label: "Japan" },
-  { value: "liberia", label: "Liberia" },
-  { value: "luxembourg", label: "Luxembourg" },
-  { value: "malta", label: "Malta" },
-  { value: "marshall-islands", label: "Marshall Islands" },
-  { value: "mexico", label: "Mexico" },
-  { value: "netherlands", label: "Netherlands" },
-  { value: "new-zealand", label: "New Zealand" },
-  { value: "norway", label: "Norway" },
-  { value: "philippines", label: "Philippines" },
-  { value: "poland", label: "Poland" },
-  { value: "portugal", label: "Portugal" },
-  { value: "saudi-arabia", label: "Saudi Arabia" },
-  { value: "singapore", label: "Singapore" },
-  { value: "south-africa", label: "South Africa" },
-  { value: "spain", label: "Spain" },
-  { value: "sri-lanka", label: "Sri Lanka" },
-  { value: "sweden", label: "Sweden" },
-  { value: "switzerland", label: "Switzerland" },
-  { value: "thailand", label: "Thailand" },
-  { value: "trinidad-tobago", label: "Trinidad and Tobago" },
-  { value: "turkey", label: "Turkey" },
-  { value: "ukraine", label: "Ukraine" },
-  { value: "uae", label: "United Arab Emirates" },
-  { value: "uk", label: "United Kingdom" },
-  { value: "tanzania", label: "United Republic of Tanzania" },
-  { value: "usa", label: "United States" },
-  { value: "uruguay", label: "Uruguay" },
-  { value: "venezuela", label: "Venezuela (Bolivarian Republic of)" },
-  { value: "vietnam", label: "Viet Nam" },
-]
-
-const inputStyles =
-  "w-full p-3 rounded-lg border-2 border-gray-300 text-sm transition-colors duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-const labelStyles = "block mb-1.5 font-semibold text-gray-700 text-sm"
-const boxStyles = "bg-white p-6 rounded-xl shadow-md mb-6 border border-gray-200"
-const formGridStyles = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5"
-const photoGridStyles = "grid grid-cols-1 md:grid-cols-2 gap-5 mt-5"
+const inputStyles = "w-full p-3 rounded-lg border-2 border-gray-300 text-sm transition-colors duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
+const labelStyles = "block mb-1.5 font-semibold text-gray-700 text-sm";
+const boxStyles = "bg-white p-6 rounded-xl shadow-md mb-6 border border-gray-200";
+const formGridStyles = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5";
+const photoGridStyles = "grid grid-cols-1 md:grid-cols-2 gap-5 mt-5";
 
 const LiberiaForm: FC = () => {
-  // --- State ---
+  // ... (toda tu lógica de estado existente)
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     fullName: "",
     passport: "",
@@ -393,88 +43,99 @@ const LiberiaForm: FC = () => {
     phone: "",
     birthDate: "",
     address: "",
-    currentRankText: "", // Cambiar nombre
+    currentRankText: "",
     totalExperience: "",
     lastVessel: "",
     vesselTypes: "",
     otherCurrentRank: "",
-    currentRankDetail: "", // Nuevo campo
-  })
-  const [idPhotoFile, setIdPhotoFile] = useState<File | null>(null)
-  const [passportPhotoFile, setPassportPhotoFile] = useState<File | null>(null)
-  const [rlm105File, setRlm105File] = useState<File | null>(null)
-  const [selectedRank, setSelectedRank] = useState("")
-  const [certificates, setCertificates] = useState<CertificateData[]>([])
-  const [comments, setComments] = useState("")
-  const [confirmRequirements, setConfirmRequirements] = useState(false)
+    currentRankDetail: "",
+  });
+  const [idPhotoFile, setIdPhotoFile] = useState<File | null>(null);
+  const [passportPhotoFile, setPassportPhotoFile] = useState<File | null>(null);
+  const [rlm105File, setRlm105File] = useState<File | null>(null);
+  const [selectedRank, setSelectedRank] = useState("");
+  const [certificates, setCertificates] = useState<CertificateData[]>([]);
+  const [comments, setComments] = useState("");
+  const [confirmRequirements, setConfirmRequirements] = useState(false);
+  const [cocStatus, setCocStatus] = useState<
+    "ok" | "sanctioned" | "non_stcw" | "none"
+  >("none");
+  const [errors, setErrors] = useState<string[]>([]);
+  const [progress, setProgress] = useState(0);
 
-  const [cocStatus, setCocStatus] = useState<"ok" | "sanctioned" | "non_stcw" | "none">("none")
-  const [errors, setErrors] = useState<string[]>([])
-  const [progress, setProgress] = useState(0)
+  // --- NUEVO ESTADO PARA GESTIONAR EL ENVÍO ---
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- Handlers ---
+  // ... (todos tus handlers existentes como handlePersonalInfoChange, handlePhotoUpload, etc.)
   const handlePersonalInfoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
-    const { id, value } = e.target
-    setPersonalInfo((prev) => ({ ...prev, [id]: value }))
+    const { id, value } = e.target;
+    setPersonalInfo((prev) => ({ ...prev, [id]: value }));
 
     if (id === "cocFlag") {
-      checkCOCEligibility(value)
+      checkCOCEligibility(value);
     }
-  }
+  };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "id" | "passport") => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handlePhotoUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "id" | "passport"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("❌ File is too large. Maximum allowed size is 5MB.")
-      e.target.value = ""
-      return
+      alert("❌ File is too large. Maximum allowed size is 5MB.");
+      e.target.value = "";
+      return;
     }
     if (!["image/jpeg", "image/png"].includes(file.type)) {
-      alert("❌ File type not allowed. Only JPG and PNG files are accepted.")
-      e.target.value = ""
-      return
+      alert("❌ File type not allowed. Only JPG and PNG files are accepted.");
+      e.target.value = "";
+      return;
     }
 
-    if (type === "id") setIdPhotoFile(file)
-    else setPassportPhotoFile(file)
-  }
+    if (type === "id") setIdPhotoFile(file);
+    else setPassportPhotoFile(file);
+  };
 
   const handleRemovePhoto = (type: "id" | "passport") => {
     if (type === "id") {
-      setIdPhotoFile(null)
-      ;(document.getElementById("idPhoto") as HTMLInputElement).value = ""
+      setIdPhotoFile(null);
+      (document.getElementById("idPhoto") as HTMLInputElement).value = "";
     } else {
-      setPassportPhotoFile(null)
-      ;(document.getElementById("passportPhoto") as HTMLInputElement).value = ""
+      setPassportPhotoFile(null);
+      (document.getElementById("passportPhoto") as HTMLInputElement).value = "";
     }
-  }
+  };
 
   const handleRLM105Upload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("❌ File is too large. Maximum allowed size is 10MB.")
-      e.target.value = ""
-      return
+      alert("❌ File is too large. Maximum allowed size is 10MB.");
+      e.target.value = "";
+      return;
     }
     if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type)) {
-      alert("❌ File type not allowed. Only PDF, JPG, and PNG files are accepted.")
-      e.target.value = ""
-      return
+      alert(
+        "❌ File type not allowed. Only PDF, JPG, and PNG files are accepted."
+      );
+      e.target.value = "";
+      return;
     }
-    setRlm105File(file)
-  }
+    setRlm105File(file);
+  };
 
   const checkCOCEligibility = (country: string) => {
     if (sanctionedCountries.includes(country)) {
-      setCocStatus("sanctioned")
-      setSelectedRank("") // Reset rank if COC is ineligible
-      setCertificates([])
+      setCocStatus("sanctioned");
+      setSelectedRank(""); // Reset rank if COC is ineligible
+      setCertificates([]);
       setTimeout(
         () =>
           alert(
@@ -482,12 +143,12 @@ const LiberiaForm: FC = () => {
               "The selected COC flag state is subject to comprehensive sanctions. " +
               "Liberia cannot process applications with certificates from this administration.\n\n" +
               "You must hold a valid Certificate of Competency from an approved STCW country to proceed.\n\n" +
-              "Please contact the Training Center if you have questions about alternative documentation.",
+              "Please contact the Training Center if you have questions about alternative documentation."
           ),
-        500,
-      )
+        500
+      );
     } else if (nonSTCWCountries.includes(country)) {
-      setCocStatus("non_stcw")
+      setCocStatus("non_stcw");
       setTimeout(
         () =>
           alert(
@@ -495,24 +156,26 @@ const LiberiaForm: FC = () => {
               "The selected country is not on the STCW approved list. " +
               "Your application will be subject to additional document review on a case-by-case basis.\n\n" +
               "Additional documents may be requested. Please contact the Training Center for guidance before proceeding.\n\n" +
-              "Processing time may be extended for non-STCW approved certificates.",
+              "Processing time may be extended for non-STCW approved certificates."
           ),
-        500,
-      )
+        500
+      );
     } else {
-      setCocStatus(country ? "ok" : "none")
+      setCocStatus(country ? "ok" : "none");
     }
-  }
+  };
 
   const handleRankChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const rank = e.target.value
+    const rank = e.target.value;
     if (cocStatus === "sanctioned") {
-      alert("⚠️ Please select an eligible COC flag state before proceeding with rank selection.")
-      setSelectedRank("")
-      return
+      alert(
+        "⚠️ Please select an eligible COC flag state before proceeding with rank selection."
+      );
+      setSelectedRank("");
+      return;
     }
 
-    setSelectedRank(rank)
+    setSelectedRank(rank);
     if (rank && requirements[rank]) {
       const newCertificates = requirements[rank].courses.map((course) => ({
         ...course,
@@ -521,47 +184,59 @@ const LiberiaForm: FC = () => {
         issueDate: "",
         expiryDate: "",
         issuingAuthority: "",
-      }))
-      setCertificates(newCertificates)
+      }));
+      setCertificates(newCertificates);
     } else {
-      setCertificates([])
+      setCertificates([]);
     }
-  }
+  };
 
-  const handleCertificateChange = (index: number, field: keyof CertificateData, value: string | File) => {
-    const updatedCerts = [...certificates]
-    updatedCerts[index] = { ...updatedCerts[index], [field]: value }
-    setCertificates(updatedCerts)
-  }
+  const handleCertificateChange = (
+    index: number,
+    field: keyof CertificateData,
+    value: string | File
+  ) => {
+    const updatedCerts = [...certificates];
+    updatedCerts[index] = { ...updatedCerts[index], [field]: value };
+    setCertificates(updatedCerts);
+  };
 
-  const handleCertificateFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
-    handleCertificateChange(index, "file", file as File)
-  }
+  const handleCertificateFileChange = (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0] || null;
+    handleCertificateChange(index, "file", file as File);
+  };
 
+  // Tu función de validación permanece igual
   const validateForm = useCallback(() => {
-    const errs: string[] = []
-    if (!personalInfo.fullName.trim()) errs.push("Full name is required")
-    if (!personalInfo.passport.trim()) errs.push("Passport number is required")
-    if (!personalInfo.nationality.trim()) errs.push("Nationality is required")
-    if (!personalInfo.cocFlag.trim()) errs.push("COC flag state is required")
-    if (!personalInfo.email.trim()) errs.push("Email address is required")
-    if (!personalInfo.currentRankText.trim()) errs.push("Current rank is required")
-    if (cocStatus === "sanctioned") errs.push("Selected COC flag state is not eligible due to sanctions")
-    if (!idPhotoFile) errs.push("ID photo is required")
-    if (!passportPhotoFile) errs.push("Passport photo is required")
-    if (!rlm105File) errs.push("RLM-105 form must be uploaded")
-    if (!selectedRank) errs.push("You must select a rank to apply for")
+    const errs: string[] = [];
+    if (!personalInfo.fullName.trim()) errs.push("Full name is required");
+    if (!personalInfo.passport.trim()) errs.push("Passport number is required");
+    if (!personalInfo.nationality.trim()) errs.push("Nationality is required");
+    if (!personalInfo.cocFlag.trim()) errs.push("COC flag state is required");
+    if (!personalInfo.email.trim()) errs.push("Email address is required");
+    if (!personalInfo.currentRankText.trim())
+      errs.push("Current rank is required");
+    if (cocStatus === "sanctioned")
+      errs.push("Selected COC flag state is not eligible due to sanctions");
+    if (!idPhotoFile) errs.push("ID photo is required");
+    if (!passportPhotoFile) errs.push("Passport photo is required");
+    if (!rlm105File) errs.push("RLM-105 form must be uploaded");
+    if (!selectedRank) errs.push("You must select a rank to apply for");
 
     certificates.forEach((cert) => {
-      if (cert.required && !cert.file) errs.push(`Certificate must be uploaded for ${cert.courseName}`)
+      if (cert.required && !cert.file)
+        errs.push(`Certificate must be uploaded for ${cert.courseName}`);
       if (cert.required && !cert.certificateNumber.trim())
-        errs.push(`Certificate number required for ${cert.courseName}`)
-    })
+        errs.push(`Certificate number required for ${cert.courseName}`);
+    });
 
-    if (!confirmRequirements) errs.push("You must confirm that you meet all requirements")
+    if (!confirmRequirements)
+      errs.push("You must confirm that you meet all requirements");
 
-    return errs
+    return errs;
   }, [
     personalInfo,
     cocStatus,
@@ -571,51 +246,74 @@ const LiberiaForm: FC = () => {
     selectedRank,
     certificates,
     confirmRequirements,
-  ])
+  ]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const validationErrors = validateForm()
-    setErrors(validationErrors)
+  // --- FUNCIÓN handleSubmit TOTALMENTE NUEVA ---
+  // En LiberiaForm.tsx
 
-    if (validationErrors.length > 0) {
-      const errorContainer = document.getElementById("errorsContainer")
-      errorContainer?.scrollIntoView({ behavior: "smooth" })
-      return
-    }
+// En LiberiaForm.tsx
 
-    alert(
-      "✅ Form submitted successfully!\n\n" +
-        "Your application has been received and will be processed by the competent authorities of Liberia.\n\n" +
-        "Documents received:\n" +
-        "• Completed RLM-105 form\n" +
-        '• ID photo (1.75" x 1.75") and passport photo\n' +
-        "• Training certificates\n" +
-        "• Complete personal information\n" +
-        "• Nationality and COC flag state information\n\n" +
-        "You will receive an email confirmation with:\n" +
-        "• Your application reference number\n" +
-        "• Next steps in the process\n" +
-        "• Information about examination dates\n\n" +
-        "Thank you for your application.",
-    )
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    console.log("Form data:", {
-      personalInfo,
-      photos: { idPhoto: idPhotoFile, passportPhoto: passportPhotoFile },
-      rlm105File,
-      rankApplying: selectedRank,
-      certificates,
-      comments,
-      cocEligible: cocStatus !== "sanctioned",
-    })
-
-    // Optionally, reset form here
+  const validationErrors = validateForm();
+  if (validationErrors.length > 0) {
+    setErrors(validationErrors);
+    document.getElementById("errorsContainer")?.scrollIntoView({ behavior: "smooth" });
+    return;
   }
 
+  setErrors([]);
+  setIsSubmitting(true);
+
+  try {
+    const formData = new FormData();
+    
+    // 1. Adjuntar datos de texto e información personal (esto ya estaba bien)
+    Object.entries(personalInfo).forEach(([key, value]) => formData.append(key, value));
+    formData.append("rankApplying", selectedRank);
+    formData.append("comments", comments);
+
+    // 2. Adjuntar archivos únicos (esto ya estaba bien)
+    if (idPhotoFile) formData.append("idPhotoFile", idPhotoFile);
+    if (passportPhotoFile) formData.append("passportPhotoFile", passportPhotoFile);
+    if (rlm105File) formData.append("rlm105File", rlm105File);
+
+    // 3. Adjuntar metadatos de certificados como JSON (esto ya estaba bien)
+    const certsDataWithoutFiles = certificates.map(({ file, ...rest }) => rest);
+    formData.append("certificatesMetadata", JSON.stringify(certsDataWithoutFiles)); // Renombré a 'certificatesMetadata' para mayor claridad
+
+    // 4. ✨ LA SOLUCIÓN: Adjuntar cada archivo de certificado con una CLAVE ÚNICA ✨
+    certificates.forEach((cert, index) => {
+      if (cert.file) {
+        // En lugar de "certificateFiles", usamos una clave única como "certificateFile_0", "certificateFile_1", etc.
+        formData.append(`certificateFile_${index}`, cert.file);
+      }
+    });
+
+    // Llamada a la server action (sin cambios)
+    const result = await submitApplication(formData);
+
+    if (!result.success) {
+      throw new Error(result.message || 'El servidor devolvió un error inesperado.');
+    }
+
+    alert(`✅ Solicitud enviada con éxito!\nReferencia: ${result.applicationId}`);
+    // Aquí iría una función para resetear el estado del formulario a sus valores iniciales.
+    // e.target.reset() no es ideal con React.
+
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Ocurrió un error inesperado.";
+    setErrors([message]);
+    document.getElementById("errorsContainer")?.scrollIntoView({ behavior: "smooth" });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  // Tu useEffect para la barra de progreso permanece igual
   useEffect(() => {
-    const totalSteps = 6
-    let completedSteps = 0
+    const totalSteps = 6;
+    let completedSteps = 0;
 
     if (
       personalInfo.fullName &&
@@ -624,29 +322,31 @@ const LiberiaForm: FC = () => {
       personalInfo.nationality &&
       personalInfo.cocFlag
     ) {
-      completedSteps++
+      completedSteps++;
     }
     if (idPhotoFile && passportPhotoFile) {
-      completedSteps++
+      completedSteps++;
     }
     if (rlm105File) {
-      completedSteps++
+      completedSteps++;
     }
     if (selectedRank && cocStatus !== "sanctioned") {
-      completedSteps++
+      completedSteps++;
     }
     if (
       certificates.length > 0 &&
-      certificates.every((cert) => !cert.required || (cert.file && cert.certificateNumber)) &&
+      certificates.every(
+        (cert) => !cert.required || (cert.file && cert.certificateNumber)
+      ) &&
       cocStatus !== "sanctioned"
     ) {
-      completedSteps++
+      completedSteps++;
     }
     if (confirmRequirements && cocStatus !== "sanctioned") {
-      completedSteps++
+      completedSteps++;
     }
 
-    setProgress((completedSteps / totalSteps) * 100)
+    setProgress((completedSteps / totalSteps) * 100);
   }, [
     personalInfo,
     idPhotoFile,
@@ -656,8 +356,9 @@ const LiberiaForm: FC = () => {
     certificates,
     confirmRequirements,
     cocStatus,
-  ])
+  ]);
 
+  // --- El JSX permanece casi idéntico, solo actualizamos el botón de envío ---
   return (
     <div className="font-sans bg-gradient-to-br from-blue-50 to-gray-200 p-1 min-h-screen leading-relaxed">
       <div className="container max-w-7xl mx-auto">
@@ -672,7 +373,9 @@ const LiberiaForm: FC = () => {
           ></div>
         </div>
 
+        {/* Cambiamos la etiqueta <form> para usar nuestro nuevo handler */}
         <form onSubmit={handleSubmit}>
+          {/* ... (todo tu JSX del formulario sin cambios) ... */}
           <div className={boxStyles}>
             <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">
               👤 Applicant's Personal Information
@@ -685,6 +388,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="text"
                   id="fullName"
+                  name="fullName" // Añadir name para FormData
                   value={personalInfo.fullName}
                   onChange={handlePersonalInfoChange}
                   placeholder="Full name"
@@ -699,6 +403,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="text"
                   id="passport"
+                  name="passport" // Añadir name para FormData
                   value={personalInfo.passport}
                   onChange={handlePersonalInfoChange}
                   placeholder="e.g.: A1234567"
@@ -713,6 +418,7 @@ const LiberiaForm: FC = () => {
                 </label>
                 <select
                   id="nationality"
+                  name="nationality" // Añadir name para FormData
                   value={personalInfo.nationality}
                   onChange={handlePersonalInfoChange}
                   className={inputStyles}
@@ -738,6 +444,7 @@ const LiberiaForm: FC = () => {
                 </label>
                 <select
                   id="cocFlag"
+                  name="cocFlag" // Añadir name para FormData
                   value={personalInfo.cocFlag}
                   onChange={handlePersonalInfoChange}
                   className={inputStyles}
@@ -766,15 +473,17 @@ const LiberiaForm: FC = () => {
                   <div className="bg-red-100 border-2 border-red-600 rounded-lg p-3 mt-2 text-red-800 font-semibold animate-shake">
                     <strong>⚠️ IMPORTANT NOTICE:</strong>
                     <br />
-                    Liberia does not accept COCs from this country due to sanctions. The Training Center cannot process
-                    this application.
+                    Liberia does not accept COCs from this country due to
+                    sanctions. The Training Center cannot process this
+                    application.
                   </div>
                 )}
                 {cocStatus === "non_stcw" && (
                   <div className="bg-blue-100 border border-blue-500 rounded-lg p-3 mt-2 text-blue-800 text-sm">
                     <strong>ℹ️ COC Information:</strong>
                     <br />
-                    This country is not on the STCW approved list. Additional documents may be requested.
+                    This country is not on the STCW approved list. Additional
+                    documents may be requested.
                   </div>
                 )}
               </div>
@@ -786,6 +495,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="email"
                   id="email"
+                  name="email" // Añadir name para FormData
                   value={personalInfo.email}
                   onChange={handlePersonalInfoChange}
                   placeholder="example@email.com"
@@ -800,6 +510,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="tel"
                   id="phone"
+                  name="phone" // Añadir name para FormData
                   value={personalInfo.phone}
                   onChange={handlePersonalInfoChange}
                   placeholder="+507 1234-5678"
@@ -813,26 +524,27 @@ const LiberiaForm: FC = () => {
                 <input
                   type="date"
                   id="birthDate"
+                  name="birthDate" // Añadir name para FormData
                   value={personalInfo.birthDate}
                   onChange={handlePersonalInfoChange}
                   className={inputStyles}
                 />
               </div>
             </div>
-
+            {/* ... Resto de los campos personales con el atributo 'name' ... */}
             <div className="form-group mb-5">
               <label htmlFor="address" className={labelStyles}>
                 Complete Address
               </label>
               <textarea
                 id="address"
+                name="address"
                 value={personalInfo.address}
                 onChange={handlePersonalInfoChange}
                 placeholder="Complete residential address"
                 className={`${inputStyles} min-h-[100px]`}
               ></textarea>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="form-group">
                 <label htmlFor="currentRankText" className={labelStyles}>
@@ -841,6 +553,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="text"
                   id="currentRankText"
+                  name="currentRankText"
                   value={personalInfo.currentRankText}
                   onChange={handlePersonalInfoChange}
                   placeholder="e.g.: OS, NWO, etc."
@@ -855,6 +568,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="text"
                   id="totalExperience"
+                  name="totalExperience"
                   value={personalInfo.totalExperience}
                   onChange={handlePersonalInfoChange}
                   placeholder="e.g.: 5 years"
@@ -868,6 +582,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="text"
                   id="lastVessel"
+                  name="lastVessel"
                   value={personalInfo.lastVessel}
                   onChange={handlePersonalInfoChange}
                   placeholder="Name of last vessel"
@@ -881,6 +596,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="text"
                   id="vesselTypes"
+                  name="vesselTypes"
                   value={personalInfo.vesselTypes}
                   onChange={handlePersonalInfoChange}
                   placeholder="e.g.: Tanker, Container"
@@ -889,9 +605,11 @@ const LiberiaForm: FC = () => {
               </div>
             </div>
 
-            {/* Photo & RLM sections here */}
+            {/* Photo & RLM sections here (no changes needed) */}
             <div className="photo-section bg-gray-50 border-2 border-gray-200 rounded-xl p-5 my-5">
-              <h4 className="text-lg text-blue-800 mb-4 font-semibold flex items-center gap-2">📷 Required Photos</h4>
+              <h4 className="text-lg text-blue-800 mb-4 font-semibold flex items-center gap-2">
+                📷 Required Photos
+              </h4>
               <div className={photoGridStyles}>
                 {/* ID Photo */}
                 <div className="form-group">
@@ -902,11 +620,14 @@ const LiberiaForm: FC = () => {
                     className={`relative border-2 border-dashed border-gray-300 rounded-lg p-5 text-center bg-white transition-all hover:border-blue-500 hover:bg-blue-50 ${idPhotoFile ? "border-green-500 bg-green-50" : ""}`}
                   >
                     <div className="text-4xl mb-2 text-gray-400">📸</div>
-                    <p className="text-base font-semibold mb-2">Upload ID photo</p>
+                    <p className="text-base font-semibold mb-2">
+                      Upload ID photo
+                    </p>
                     <p className="text-sm text-gray-500">JPG, PNG (Max 5MB)</p>
                     <input
                       type="file"
                       id="idPhoto"
+                      name="idPhotoFile" // Añadir name
                       accept=".jpg,.jpeg,.png"
                       onChange={(e) => handlePhotoUpload(e, "id")}
                       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
@@ -935,11 +656,14 @@ const LiberiaForm: FC = () => {
                     className={`relative border-2 border-dashed border-gray-300 rounded-lg p-5 text-center bg-white transition-all hover:border-blue-500 hover:bg-blue-50 ${passportPhotoFile ? "border-green-500 bg-green-50" : ""}`}
                   >
                     <div className="text-4xl mb-2 text-gray-400">🛂</div>
-                    <p className="text-base font-semibold mb-2">Upload passport photo</p>
+                    <p className="text-base font-semibold mb-2">
+                      Upload passport photo
+                    </p>
                     <p className="text-sm text-gray-500">JPG, PNG (Max 5MB)</p>
                     <input
                       type="file"
                       id="passportPhoto"
+                      name="passportPhotoFile" // Añadir name
                       accept=".jpg,.jpeg,.png"
                       onChange={(e) => handlePhotoUpload(e, "passport")}
                       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
@@ -967,13 +691,16 @@ const LiberiaForm: FC = () => {
                 📋 Required RLM-105 Form
               </h4>
               <div className="instructions bg-amber-100 border border-amber-500 rounded-lg p-4 text-sm mb-4">
-                <h5 className="font-bold text-amber-800 mb-2">⚠️ Important Instructions:</h5>
+                <h5 className="font-bold text-amber-800 mb-2">
+                  ⚠️ Important Instructions:
+                </h5>
                 <ol className="list-decimal list-inside space-y-1">
                   <li>
                     <strong>Download</strong> the official RLM-105 form.
                   </li>
                   <li>
-                    <strong>Complete</strong> all fields and <strong>sign</strong> it.
+                    <strong>Complete</strong> all fields and{" "}
+                    <strong>sign</strong> it.
                   </li>
                   <li>
                     <strong>Scan or photograph</strong> the completed document.
@@ -1000,12 +727,15 @@ const LiberiaForm: FC = () => {
                   <input
                     type="file"
                     id="rlm105Upload"
+                    name="rlm105File" // Añadir name
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={handleRLM105Upload}
                     className="text-sm"
                     required={!rlm105File}
                   />
-                  <p className="mt-2 text-sm text-gray-500">PDF, JPG, PNG (Max 10MB)</p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    PDF, JPG, PNG (Max 10MB)
+                  </p>
                 </div>
                 {rlm105File && (
                   <div className="text-green-600 text-sm mt-2 flex items-center gap-2">
@@ -1015,8 +745,6 @@ const LiberiaForm: FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Campo de Rango Actual - NUEVO */}
           <div className={boxStyles}>
             <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">
               👨‍✈️ Rango Actual / Current Rank
@@ -1027,6 +755,7 @@ const LiberiaForm: FC = () => {
               </label>
               <select
                 id="currentRankDetail"
+                name="currentRankDetail"
                 value={personalInfo.currentRankDetail}
                 onChange={handlePersonalInfoChange}
                 className={inputStyles}
@@ -1049,6 +778,7 @@ const LiberiaForm: FC = () => {
                 <input
                   type="text"
                   id="otherCurrentRank"
+                  name="otherCurrentRank"
                   placeholder="Escriba su rango actual"
                   value={personalInfo.otherCurrentRank}
                   onChange={handlePersonalInfoChange}
@@ -1058,7 +788,7 @@ const LiberiaForm: FC = () => {
               </div>
             )}
           </div>
-
+          {/* ... Resto del JSX del formulario ... */}
           {/* Rank Selection - MODIFICADO PARA MOSTRAR SOLO LOS 6 RANGOS */}
           <div className={boxStyles}>
             <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">
@@ -1070,6 +800,7 @@ const LiberiaForm: FC = () => {
               </label>
               <select
                 id="rank"
+                name="rank"
                 value={selectedRank}
                 onChange={handleRankChange}
                 className={inputStyles}
@@ -1085,111 +816,105 @@ const LiberiaForm: FC = () => {
               </select>
             </div>
           </div>
+          {/* ... */}
+          // Busca esta parte en tu JSX:
+{certificates.length > 0 && (
+  <div className={boxStyles}>
+    {/* ... */}
+    <div className="space-y-5">
+      {/* Reemplaza el contenido de este map con lo siguiente: */}
+      {certificates.map((cert, index) => (
+        <div
+          key={index}
+          className="cursoBox bg-gray-50 border-2 border-gray-200 rounded-lg p-5 hover:border-blue-500 transition-colors"
+        >
+          <h4 className="text-lg text-blue-800 font-semibold flex items-center gap-3 mb-3">
+            📜 {cert.courseName}
+            {cert.required && (
+              <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                REQUIRED
+              </span>
+            )}
+          </h4>
+          <p className="text-gray-600 text-sm mb-4">
+            {cert.description}
+          </p>
 
-          {/* Rank Requirements */}
-          {selectedRank && requirements[selectedRank] && (
-            <div className={boxStyles}>
-              <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">
-                📋 Selected Rank Requirements
-              </h3>
-              <div className="alert bg-blue-100 text-blue-800 p-4 rounded-lg mb-3">
-                <strong>Previous rank required:</strong> {requirements[selectedRank].previous}
-              </div>
-              <div className="alert bg-amber-100 text-amber-800 p-4 rounded-lg">
-                <strong>Minimum experience:</strong> {requirements[selectedRank].experience}
-              </div>
+          {/* --- CÓDIGO AÑADIDO / CORREGIDO --- */}
+          {/* Este grid contiene los campos de texto para los detalles del certificado. */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="form-group">
+              <label className={labelStyles}>Certificate Number *</label>
+              <input
+                type="text"
+                value={cert.certificateNumber}
+                onChange={(e) => handleCertificateChange(index, "certificateNumber", e.target.value)}
+                placeholder="e.g., C-12345"
+                className={inputStyles}
+                required={cert.required}
+              />
             </div>
-          )}
-
-          {/* Required Certificates */}
-          {certificates.length > 0 && (
-            <div className={boxStyles}>
-              <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">
-                📄 Required Certificates
-              </h3>
-              <p className="mb-5 text-gray-600">
-                Complete the information and upload documents for each required certificate:
-              </p>
-              <div className="space-y-5">
-                {certificates.map((cert, index) => (
-                  <div
-                    key={index}
-                    className="cursoBox bg-gray-50 border-2 border-gray-200 rounded-lg p-5 hover:border-blue-500 transition-colors"
-                  >
-                    <h4 className="text-lg text-blue-800 font-semibold flex items-center gap-3 mb-3">
-                      📜 {cert.courseName}
-                      {cert.required && (
-                        <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                          REQUIRED
-                        </span>
-                      )}
-                    </h4>
-                    <p className="text-gray-600 text-sm mb-4">{cert.description}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="form-group">
-                        <label className={labelStyles}>Certificate Number *</label>
-                        <input
-                          type="text"
-                          value={cert.certificateNumber}
-                          onChange={(e) => handleCertificateChange(index, "certificateNumber", e.target.value)}
-                          placeholder="e.g.: STCW-001234"
-                          className={inputStyles}
-                          required={cert.required}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label className={labelStyles}>Issuing Authority</label>
-                        <input
-                          type="text"
-                          value={cert.issuingAuthority}
-                          onChange={(e) => handleCertificateChange(index, "issuingAuthority", e.target.value)}
-                          placeholder="e.g.: AMP, STCW Center"
-                          className={inputStyles}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label className={labelStyles}>Issue Date</label>
-                        <input
-                          type="date"
-                          value={cert.issueDate}
-                          onChange={(e) => handleCertificateChange(index, "issueDate", e.target.value)}
-                          className={inputStyles}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label className={labelStyles}>Expiry Date</label>
-                        <input
-                          type="date"
-                          value={cert.expiryDate}
-                          onChange={(e) => handleCertificateChange(index, "expiryDate", e.target.value)}
-                          className={inputStyles}
-                        />
-                      </div>
-                    </div>
-                    <div className="form-group mt-4">
-                      <label className={labelStyles}>Upload Certificate (PDF, JPG, PNG) *</label>
-                      <div className="file-upload-area border-2 border-dashed border-gray-300 p-4 rounded-lg text-center bg-white">
-                        <input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={(e) => handleCertificateFileChange(index, e)}
-                          className="text-sm"
-                          required={cert.required && !cert.file}
-                        />
-                      </div>
-                      {cert.file && (
-                        <div className="text-green-600 text-sm mt-2">✅ File uploaded: {cert.file.name}</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="form-group">
+              <label className={labelStyles}>Issuing Authority</label>
+              <input
+                type="text"
+                value={cert.issuingAuthority}
+                onChange={(e) => handleCertificateChange(index, "issuingAuthority", e.target.value)}
+                placeholder="e.g., Panama Maritime"
+                className={inputStyles}
+              />
             </div>
-          )}
+            <div className="form-group">
+              <label className={labelStyles}>Issue Date</label>
+              <input
+                type="date"
+                value={cert.issueDate}
+                onChange={(e) => handleCertificateChange(index, "issueDate", e.target.value)}
+                className={inputStyles}
+              />
+            </div>
+            <div className="form-group">
+              <label className={labelStyles}>Expiry Date</label>
+              <input
+                type="date"
+                value={cert.expiryDate}
+                onChange={(e) => handleCertificateChange(index, "expiryDate", e.target.value)}
+                className={inputStyles}
+              />
+            </div>
+          </div>
+          {/* --- FIN DEL CÓDIGO AÑADIDO --- */}
 
-          {/* Additional Information & Submit */}
+          <div className="form-group mt-4">
+            <label className={labelStyles}>
+              Upload Certificate (PDF, JPG, PNG) {cert.required ? '*' : ''}
+            </label>
+            <div className="file-upload-area border-2 border-dashed border-gray-300 p-4 rounded-lg text-center bg-white">
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleCertificateFileChange(index, e)}
+                className="text-sm"
+                required={cert.required && !cert.file} // La validación de archivo sigue aquí
+              />
+            </div>
+            {cert.file && (
+              <div className="text-green-600 text-sm mt-2">
+                ✅ File uploaded: {cert.file.name}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+          {/* ----- SECCIÓN FINAL DE ENVÍO ----- */}
           {selectedRank && (
             <div className={boxStyles}>
+              {/* ... (el resto del JSX como comentarios, checkbox y errores) ... */}
+
               <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">
                 💬 Additional Information
               </h3>
@@ -1199,6 +924,7 @@ const LiberiaForm: FC = () => {
                 </label>
                 <textarea
                   id="comments"
+                  name="comments"
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
                   placeholder="Enter any additional relevant information..."
@@ -1214,11 +940,16 @@ const LiberiaForm: FC = () => {
                   className="mt-1 h-4 w-4 accent-blue-600"
                   required
                 />
-                <label htmlFor="checkRequirements" className="text-sm text-gray-700">
-                  I confirm that I meet all the mentioned requirements and have attached all required documents,
-                  including the completed and signed RLM-105 form, ID photo, and passport photo. The information
-                  provided is truthful and complete. I understand that my COC must be from an STCW approved nation or
-                  will be subject to additional review.
+                <label
+                  htmlFor="checkRequirements"
+                  className="text-sm text-gray-700"
+                >
+                  I confirm that I meet all the mentioned requirements and have
+                  attached all required documents, including the completed and
+                  signed RLM-105 form, ID photo, and passport photo. The
+                  information provided is truthful and complete. I understand
+                  that my COC must be from an STCW approved nation or will be
+                  subject to additional review.
                 </label>
               </div>
 
@@ -1228,7 +959,9 @@ const LiberiaForm: FC = () => {
                   className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4"
                   role="alert"
                 >
-                  <strong className="font-bold">⚠️ Please correct the following errors:</strong>
+                  <strong className="font-bold">
+                    ⚠️ Please correct the following errors:
+                  </strong>
                   <ul className="list-disc list-inside mt-2">
                     {errors.map((error, index) => (
                       <li key={index}>{error}</li>
@@ -1237,18 +970,22 @@ const LiberiaForm: FC = () => {
                 </div>
               )}
 
+              {/* --- BOTÓN DE ENVÍO ACTUALIZADO --- */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-br from-blue-600 to-blue-800 text-white p-4 text-lg font-bold rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+                disabled={isSubmitting} // Deshabilitado durante el envío
+                className="w-full bg-gradient-to-br from-blue-600 to-blue-800 text-white p-4 text-lg font-bold rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                📤 Submit Application
+                {isSubmitting
+                  ? "Submitting Application..."
+                  : "📤 Submit Application"}
               </button>
             </div>
           )}
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LiberiaForm
+export default LiberiaForm;
