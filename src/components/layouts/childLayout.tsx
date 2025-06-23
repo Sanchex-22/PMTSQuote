@@ -5,7 +5,7 @@ import Sidebar from "./sidebar";
 import AdminNavbar from "./adminNavbar";
 import Footer from "./footer";
 import Navbar from "./navbar";
-// import AdminNavbar from "../ui/adminNavbar";
+import { Analytics } from "@vercel/analytics/react"
 interface CurrentPathname {
   name: string;
 }
@@ -50,7 +50,10 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
           profile={profile}/>
         }
         <Sidebar></Sidebar>
-        <div className="page-content">{children}</div>
+        <div className="page-content">
+          {children}
+          <Analytics />
+        </div>
         {/* <WhatsappButton/> */}
       </main>
       {publicRoute ? <Footer/>:<></>}

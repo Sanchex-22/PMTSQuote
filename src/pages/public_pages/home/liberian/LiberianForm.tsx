@@ -12,12 +12,12 @@ interface PersonalInfo {
   phone: string
   birthDate: string
   address: string
-  currentRankText: string // Cambiar de currentRank a currentRankText
+  currentRankText: string
   totalExperience: string
   lastVessel: string
   vesselTypes: string
   otherCurrentRank: string
-  currentRankDetail: string // Nuevo campo para el dropdown
+  currentRankDetail: string
 }
 
 interface CertificateData {
