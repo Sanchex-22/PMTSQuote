@@ -58,7 +58,6 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
           <Analytics />
           <SpeedInsights />
         </div>
-        {/* <WhatsappButton/> */}
       </main>
       {publicRoute ? <Footer/>:<></>}
     </>
