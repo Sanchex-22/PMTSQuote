@@ -17,6 +17,7 @@
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "axios": "^1.9.0",
+    "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "dotenv": "^16.4.5",
     "flag-icon-css": "^4.1.7",
@@ -25,6 +26,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.344.0",
     "next": "^15.3.3",
+    "next-themes": "^0.4.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet-async": "^2.0.4",
@@ -33,7 +35,7 @@
     "react-router-dom": "^6.22.2",
     "react-world-flags": "^1.6.0",
     "resend": "^4.5.2",
-    "sonner": "^1.4.3"
+    "sonner": "^1.7.4"
   },
   "devDependencies": {
     "@types/jspdf": "^2.0.0",

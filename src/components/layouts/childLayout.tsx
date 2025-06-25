@@ -7,6 +7,7 @@ import Footer from "./footer";
 import Navbar from "./navbar";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
+import { Toaster as Sonner, Toaster, ToasterProps } from "sonner"
 interface CurrentPathname {
   name: string;
 }
@@ -53,6 +54,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         <Sidebar></Sidebar>
         <div className="page-content">
           {children}
+          <Toaster richColors position="top-right" />
           <Analytics />
           <SpeedInsights />
         </div>

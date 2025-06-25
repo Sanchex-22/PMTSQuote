@@ -5,7 +5,13 @@ import { useState, useEffect, useCallback, type FC } from "react";
 import { submitApplication } from "../../../../actions/liberianActions";
 import stcwCountries from "../../../../data/stcwCountries";
 import sanctionedCountries from "../../../../data/sanctionedCountries";
-import { CertificateData, RANK_DISPLAY_NAMES, requirements } from "../../../../data/rankDisplayName";
+import {
+  CertificateData,
+  RANK_DISPLAY_NAMES,
+  requirements,
+} from "../../../../data/rankDisplayName";
+import { toast } from "sonner";
+import { Alert } from "../components/alert";
 
 interface PersonalInfo {
   fullName: string;
@@ -26,10 +32,13 @@ interface PersonalInfo {
 
 const nonSTCWCountries = ["other"];
 
-const inputStyles = "w-full p-3 rounded-lg border-2 border-gray-300 text-sm transition-colors duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
+const inputStyles =
+  "w-full p-3 rounded-lg border-2 border-gray-300 text-sm transition-colors duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
 const labelStyles = "block mb-1.5 font-semibold text-gray-700 text-sm";
-const boxStyles = "bg-white p-6 rounded-xl shadow-md mb-6 border border-gray-200";
-const formGridStyles = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5";
+const boxStyles =
+  "bg-white p-6 rounded-xl shadow-md mb-6 border border-gray-200";
+const formGridStyles =
+  "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5";
 const photoGridStyles = "grid grid-cols-1 md:grid-cols-2 gap-5 mt-5";
 
 const LiberiaForm: FC = () => {
@@ -80,26 +89,24 @@ const LiberiaForm: FC = () => {
     }
   };
 
-  const handlePhotoUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "id" | "passport"
-  ) => {
+const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "id" | "passport") => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("❌ File is too large. Maximum allowed size is 5MB.");
+      toast.error("File is too large", { description: "Maximum allowed size is 5MB." });
       e.target.value = "";
       return;
     }
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      alert("❌ File type not allowed. Only JPG and PNG files are accepted.");
+    if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type)) {
+      toast.error("File type not allowed", { description: "Only JPG and PNG files are accepted." });
       e.target.value = "";
       return;
     }
 
     if (type === "id") setIdPhotoFile(file);
     else setPassportPhotoFile(file);
+    toast.success(`${type === 'id' ? 'ID' : 'Passport'} photo uploaded successfully!`);
   };
 
   const handleRemovePhoto = (type: "id" | "passport") => {
@@ -112,54 +119,41 @@ const LiberiaForm: FC = () => {
     }
   };
 
-  const handleRLM105Upload = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const handleRLM105Upload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("❌ File is too large. Maximum allowed size is 10MB.");
+      toast.error("File is too large", { description: "Maximum allowed size is 10MB." });
       e.target.value = "";
       return;
     }
     if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type)) {
-      alert(
-        "❌ File type not allowed. Only PDF, JPG, and PNG files are accepted."
-      );
+      toast.error("File type not allowed", { description: "Only PDF, JPG, and PNG files are accepted." });
       e.target.value = "";
       return;
     }
     setRlm105File(file);
+    toast.success("RLM-105 form uploaded successfully!");
   };
 
   const checkCOCEligibility = (country: string) => {
     if (sanctionedCountries.includes(country)) {
       setCocStatus("sanctioned");
-      setSelectedRank(""); // Reset rank if COC is ineligible
+      setSelectedRank("");
       setCertificates([]);
-      setTimeout(
-        () =>
-          alert(
-            "⚠️ COC ELIGIBILITY NOTICE\n\n" +
-              "The selected COC flag state is subject to comprehensive sanctions. " +
-              "Liberia cannot process applications with certificates from this administration.\n\n" +
-              "You must hold a valid Certificate of Competency from an approved STCW country to proceed.\n\n" +
-              "Please contact the Training Center if you have questions about alternative documentation."
-          ),
-        500
-      );
+      toast.error("COC Eligibility Notice: Sanctioned Country", {
+        duration: 10000, // Hacerla más duradera
+        description:
+          "Liberia cannot process applications with certificates from this administration. You must hold a valid COC from an approved STCW country.",
+      });
     } else if (nonSTCWCountries.includes(country)) {
       setCocStatus("non_stcw");
-      setTimeout(
-        () =>
-          alert(
-            "ℹ️ COC REVIEW REQUIRED\n\n" +
-              "The selected country is not on the STCW approved list. " +
-              "Your application will be subject to additional document review on a case-by-case basis.\n\n" +
-              "Additional documents may be requested. Please contact the Training Center for guidance before proceeding.\n\n" +
-              "Processing time may be extended for non-STCW approved certificates."
-          ),
-        500
-      );
+      toast.warning("COC Review Required: Non-STCW Country", {
+        duration: 10000,
+        description:
+          "Your application will be subject to additional document review on a case-by-case basis. Processing time may be extended.",
+      });
     } else {
       setCocStatus(country ? "ok" : "none");
     }
@@ -168,8 +162,8 @@ const LiberiaForm: FC = () => {
   const handleRankChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const rank = e.target.value;
     if (cocStatus === "sanctioned") {
-      alert(
-        "⚠️ Please select an eligible COC flag state before proceeding with rank selection."
+      toast.warning(
+        "Please select an eligible COC flag state before proceeding."
       );
       setSelectedRank("");
       return;
@@ -207,6 +201,11 @@ const LiberiaForm: FC = () => {
   ) => {
     const file = e.target.files?.[0] || null;
     handleCertificateChange(index, "file", file as File);
+    if (file) {
+      toast.success(
+        `Certificate "${certificates[index].courseName}" uploaded.`
+      );
+    }
   };
 
   // Tu función de validación permanece igual
@@ -248,68 +247,77 @@ const LiberiaForm: FC = () => {
     confirmRequirements,
   ]);
 
-  // --- FUNCIÓN handleSubmit TOTALMENTE NUEVA ---
-  // En LiberiaForm.tsx
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-// En LiberiaForm.tsx
-
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-
-  const validationErrors = validateForm();
-  if (validationErrors.length > 0) {
-    setErrors(validationErrors);
-    document.getElementById("errorsContainer")?.scrollIntoView({ behavior: "smooth" });
-    return;
-  }
-
-  setErrors([]);
-  setIsSubmitting(true);
-
-  try {
-    const formData = new FormData();
-    
-    // 1. Adjuntar datos de texto e información personal (esto ya estaba bien)
-    Object.entries(personalInfo).forEach(([key, value]) => formData.append(key, value));
-    formData.append("rankApplying", selectedRank);
-    formData.append("comments", comments);
-
-    // 2. Adjuntar archivos únicos (esto ya estaba bien)
-    if (idPhotoFile) formData.append("idPhotoFile", idPhotoFile);
-    if (passportPhotoFile) formData.append("passportPhotoFile", passportPhotoFile);
-    if (rlm105File) formData.append("rlm105File", rlm105File);
-
-    // 3. Adjuntar metadatos de certificados como JSON (esto ya estaba bien)
-    const certsDataWithoutFiles = certificates.map(({ file, ...rest }) => rest);
-    formData.append("certificatesMetadata", JSON.stringify(certsDataWithoutFiles)); // Renombré a 'certificatesMetadata' para mayor claridad
-
-    // 4. ✨ LA SOLUCIÓN: Adjuntar cada archivo de certificado con una CLAVE ÚNICA ✨
-    certificates.forEach((cert, index) => {
-      if (cert.file) {
-        // En lugar de "certificateFiles", usamos una clave única como "certificateFile_0", "certificateFile_1", etc.
-        formData.append(`certificateFile_${index}`, cert.file);
-      }
-    });
-
-    // Llamada a la server action (sin cambios)
-    const result = await submitApplication(formData);
-
-    if (!result.success) {
-      throw new Error(result.message || 'El servidor devolvió un error inesperado.');
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      toast.error("Validation Failed", {
+        description: "Please correct the errors listed on the form.",
+      });
+      document
+        .getElementById("errorsContainer")
+        ?.scrollIntoView({ behavior: "smooth" });
+      return;
     }
 
-    alert(`✅ Solicitud enviada con éxito!\nReferencia: ${result.applicationId}`);
-    // Aquí iría una función para resetear el estado del formulario a sus valores iniciales.
-    // e.target.reset() no es ideal con React.
+    setErrors([]);
+    setIsSubmitting(true);
+    toast.loading("Submitting your application, please wait...", {
+      id: "submit-toast",
+    });
 
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Ocurrió un error inesperado.";
-    setErrors([message]);
-    document.getElementById("errorsContainer")?.scrollIntoView({ behavior: "smooth" });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    try {
+      const formData = new FormData();
+      Object.entries(personalInfo).forEach(([key, value]) =>
+        formData.append(key, value)
+      );
+      formData.append("rankApplying", selectedRank);
+      formData.append("comments", comments);
+
+      if (idPhotoFile) formData.append("idPhotoFile", idPhotoFile);
+      if (passportPhotoFile)
+        formData.append("passportPhotoFile", passportPhotoFile);
+      if (rlm105File) formData.append("rlm105File", rlm105File);
+
+      const certsDataWithoutFiles = certificates.map(
+        ({ file, ...rest }) => rest
+      );
+      formData.append(
+        "certificatesMetadata",
+        JSON.stringify(certsDataWithoutFiles)
+      );
+
+      certificates.forEach((cert, index) => {
+        if (cert.file) {
+          formData.append(`certificateFile_${index}`, cert.file);
+        }
+      });
+
+      const result = await submitApplication(formData);
+
+      if (!result.success) {
+        throw new Error(
+          result.message || "The server returned an unexpected error."
+        );
+      }
+
+      toast.success("Application Submitted Successfully!", {
+        id: "submit-toast",
+        description: `Your application reference is: ${result.applicationId}`,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Ocurrió un error inesperado.";
+      setErrors([message]);
+      document
+        .getElementById("errorsContainer")
+        ?.scrollIntoView({ behavior: "smooth" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   // Tu useEffect para la barra de progreso permanece igual
   useEffect(() => {
     const totalSteps = 6;
@@ -358,7 +366,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     cocStatus,
   ]);
 
-  // --- El JSX permanece casi idéntico, solo actualizamos el botón de envío ---
   return (
     <div className="font-sans bg-gradient-to-br from-blue-50 to-gray-200 p-1 min-h-screen leading-relaxed">
       <div className="container max-w-7xl mx-auto">
@@ -373,9 +380,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           ></div>
         </div>
 
-        {/* Cambiamos la etiqueta <form> para usar nuestro nuevo handler */}
         <form onSubmit={handleSubmit}>
-          {/* ... (todo tu JSX del formulario sin cambios) ... */}
           <div className={boxStyles}>
             <h3 className="text-xl text-gray-800 mb-5 font-bold border-b-2 border-blue-500 pb-2">
               👤 Applicant's Personal Information
@@ -470,21 +475,25 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   </optgroup>
                 </select>
                 {cocStatus === "sanctioned" && (
-                  <div className="bg-red-100 border-2 border-red-600 rounded-lg p-3 mt-2 text-red-800 font-semibold animate-shake">
-                    <strong>⚠️ IMPORTANT NOTICE:</strong>
-                    <br />
+                  <Alert
+                    variant="destructive"
+                    title="⚠️ IMPORTANT NOTICE"
+                    className="mt-2"
+                  >
                     Liberia does not accept COCs from this country due to
                     sanctions. The Training Center cannot process this
                     application.
-                  </div>
+                  </Alert>
                 )}
                 {cocStatus === "non_stcw" && (
-                  <div className="bg-blue-100 border border-blue-500 rounded-lg p-3 mt-2 text-blue-800 text-sm">
-                    <strong>ℹ️ COC Information:</strong>
-                    <br />
+                  <Alert
+                    variant="warning"
+                    title="ℹ️ COC Information"
+                    className="mt-2"
+                  >
                     This country is not on the STCW approved list. Additional
                     documents may be requested.
-                  </div>
+                  </Alert>
                 )}
               </div>
 
@@ -623,7 +632,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     <p className="text-base font-semibold mb-2">
                       Upload ID photo
                     </p>
-                    <p className="text-sm text-gray-500">JPG, PNG, PDF (Max 5MB)</p>
+                    <p className="text-sm text-gray-500">
+                      JPG, PNG, PDF (Max 5MB)
+                    </p>
                     <input
                       type="file"
                       id="idPhoto"
@@ -659,7 +670,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     <p className="text-base font-semibold mb-2">
                       Upload passport photo
                     </p>
-                    <p className="text-sm text-gray-500">JPG, PNG, PDF (Max 5MB)</p>
+                    <p className="text-sm text-gray-500">
+                      JPG, PNG, PDF (Max 5MB)
+                    </p>
                     <input
                       type="file"
                       id="passportPhoto"
@@ -817,99 +830,127 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             </div>
           </div>
           {/* ... */}
-          // Busca esta parte en tu JSX:
-{certificates.length > 0 && (
-  <div className={boxStyles}>
-    {/* ... */}
-    <div className="space-y-5">
-      {/* Reemplaza el contenido de este map con lo siguiente: */}
-      {certificates.map((cert, index) => (
-        <div
-          key={index}
-          className="cursoBox bg-gray-50 border-2 border-gray-200 rounded-lg p-5 hover:border-blue-500 transition-colors"
-        >
-          <h4 className="text-lg text-blue-800 font-semibold flex items-center gap-3 mb-3">
-            📜 {cert.courseName}
-            {cert.required && (
-              <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                REQUIRED
-              </span>
-            )}
-          </h4>
-          <p className="text-gray-600 text-sm mb-4">
-            {cert.description}
-          </p>
+          
+          {certificates.length > 0 && (
+            <div className={boxStyles}>
+              {/* ... */}
+              <div className="space-y-5">
+                {/* Reemplaza el contenido de este map con lo siguiente: */}
+                {certificates.map((cert, index) => (
+                  <div
+                    key={index}
+                    className="cursoBox bg-gray-50 border-2 border-gray-200 rounded-lg p-5 hover:border-blue-500 transition-colors"
+                  >
+                    <h4 className="text-lg text-blue-800 font-semibold flex items-center gap-3 mb-3">
+                      📜 {cert.courseName}
+                      {cert.required && (
+                        <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                          REQUIRED
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-gray-600 text-sm mb-4">
+                      {cert.description}
+                    </p>
 
-          {/* --- CÓDIGO AÑADIDO / CORREGIDO --- */}
-          {/* Este grid contiene los campos de texto para los detalles del certificado. */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <div className="form-group">
-              <label className={labelStyles}>Certificate Number *</label>
-              <input
-                type="text"
-                value={cert.certificateNumber}
-                onChange={(e) => handleCertificateChange(index, "certificateNumber", e.target.value)}
-                placeholder="e.g., C-12345"
-                className={inputStyles}
-                required={cert.required}
-              />
-            </div>
-            <div className="form-group">
-              <label className={labelStyles}>Issuing Authority</label>
-              <input
-                type="text"
-                value={cert.issuingAuthority}
-                onChange={(e) => handleCertificateChange(index, "issuingAuthority", e.target.value)}
-                placeholder="e.g., Panama Maritime"
-                className={inputStyles}
-              />
-            </div>
-            <div className="form-group">
-              <label className={labelStyles}>Issue Date</label>
-              <input
-                type="date"
-                value={cert.issueDate}
-                onChange={(e) => handleCertificateChange(index, "issueDate", e.target.value)}
-                className={inputStyles}
-              />
-            </div>
-            <div className="form-group">
-              <label className={labelStyles}>Expiry Date</label>
-              <input
-                type="date"
-                value={cert.expiryDate}
-                onChange={(e) => handleCertificateChange(index, "expiryDate", e.target.value)}
-                className={inputStyles}
-              />
-            </div>
-          </div>
-          {/* --- FIN DEL CÓDIGO AÑADIDO --- */}
+                    {/* --- CÓDIGO AÑADIDO / CORREGIDO --- */}
+                    {/* Este grid contiene los campos de texto para los detalles del certificado. */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                      <div className="form-group">
+                        <label className={labelStyles}>
+                          Certificate Number *
+                        </label>
+                        <input
+                          type="text"
+                          value={cert.certificateNumber}
+                          onChange={(e) =>
+                            handleCertificateChange(
+                              index,
+                              "certificateNumber",
+                              e.target.value
+                            )
+                          }
+                          placeholder="e.g., C-12345"
+                          className={inputStyles}
+                          required={cert.required}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className={labelStyles}>Issuing Authority</label>
+                        <input
+                          type="text"
+                          value={cert.issuingAuthority}
+                          onChange={(e) =>
+                            handleCertificateChange(
+                              index,
+                              "issuingAuthority",
+                              e.target.value
+                            )
+                          }
+                          placeholder="e.g., Panama Maritime"
+                          className={inputStyles}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className={labelStyles}>Issue Date</label>
+                        <input
+                          type="date"
+                          value={cert.issueDate}
+                          onChange={(e) =>
+                            handleCertificateChange(
+                              index,
+                              "issueDate",
+                              e.target.value
+                            )
+                          }
+                          className={inputStyles}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className={labelStyles}>Expiry Date</label>
+                        <input
+                          type="date"
+                          value={cert.expiryDate}
+                          onChange={(e) =>
+                            handleCertificateChange(
+                              index,
+                              "expiryDate",
+                              e.target.value
+                            )
+                          }
+                          className={inputStyles}
+                        />
+                      </div>
+                    </div>
+                    {/* --- FIN DEL CÓDIGO AÑADIDO --- */}
 
-          <div className="form-group mt-4">
-            <label className={labelStyles}>
-              Upload Certificate (PDF, JPG, PNG) {cert.required ? '*' : ''}
-            </label>
-            <div className="file-upload-area border-2 border-dashed border-gray-300 p-4 rounded-lg text-center bg-white">
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => handleCertificateFileChange(index, e)}
-                className="text-sm"
-                required={cert.required && !cert.file} // La validación de archivo sigue aquí
-              />
-            </div>
-            {cert.file && (
-              <div className="text-green-600 text-sm mt-2">
-                ✅ File uploaded: {cert.file.name}
+                    <div className="form-group mt-4">
+                      <label className={labelStyles}>
+                        Upload Certificate (PDF, JPG, PNG){" "}
+                        {cert.required ? "*" : ""}
+                      </label>
+                      <div className="file-upload-area border-2 border-dashed border-gray-300 p-4 rounded-lg text-center bg-white">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) =>
+                            handleCertificateFileChange(index, e)
+                          }
+                          className="text-sm"
+                          required={cert.required && !cert.file} // La validación de archivo sigue aquí
+                        />
+                      </div>
+                      {cert.file && (
+                        <div className="text-green-600 text-sm mt-2">
+                          ✅ File uploaded: {cert.file.name}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
+            </div>
+          )}
           {/* ----- SECCIÓN FINAL DE ENVÍO ----- */}
           {selectedRank && (
             <div className={boxStyles}>
@@ -954,19 +995,17 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               </div>
 
               {errors.length > 0 && (
-                <div
-                  id="errorsContainer"
-                  className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4"
-                  role="alert"
-                >
-                  <strong className="font-bold">
-                    ⚠️ Please correct the following errors:
-                  </strong>
-                  <ul className="list-disc list-inside mt-2">
-                    {errors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
+                <div id="errorsContainer" className="mb-4">
+                  <Alert
+                    variant="destructive"
+                    title="Please correct the following errors:"
+                  >
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      {errors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </Alert>
                 </div>
               )}
 
