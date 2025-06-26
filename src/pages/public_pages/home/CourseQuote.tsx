@@ -312,6 +312,7 @@ export default function CourseQuote() {
                         onChange={(value) => handleInputChange("email", value)}
                         placeholder={t("you@email.com")}
                         icon={<MailIcon />}
+                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -324,7 +325,6 @@ export default function CourseQuote() {
                         value={formData.phone}
                         onChange={(value) => handleInputChange("phone", value)}
                         placeholder={t("+1 (123) 456-7890")}
-                        required
                         icon={<PhoneIcon />}
                       />
                     </div>
