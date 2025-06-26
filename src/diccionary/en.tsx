@@ -31,6 +31,7 @@ const en = {
     "Phone": "Teléfono",
     "+1 (123) 456-7890": "+1 (123) 456-7890",
     "Search renewal courses...": "Buscar cursos de renovación...",
+    "Select courses for renewal": "Selecciona cursos para renovación",
     "Select one or more courses": "Selecciona uno o más cursos",
     "Security Verification": "Verificación de Seguridad",
     "I am not a robot": "No soy un robot",
