@@ -226,50 +226,22 @@ export default function CourseQuote() {
     setRegistration(null)
   }
 
-  if (loadingCourses) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <span className="flex items-center">
-          <LoadingSpinner />
-          <span className="ml-3 text-lg text-gray-700">{t("Loading courses...")}</span>
-        </span>
-      </div>
-    )
-  }
-
-  if (errorCourses) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 text-center">
-        <p className="text-red-600 text-lg mb-4">{errorCourses}</p>
-        <CustomButton onClick={() => window.location.reload()} variant="primary">
-          {t("Reload Page")}
-        </CustomButton>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
       <div className="max-w-2xl mx-auto">
         {!showConfirmation ? (
           <>
-            {/* Header */}
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
-                <img src={Images.logo || "/placeholder.svg"} alt="logo" width={70} height={70} />
-              </div>
-              <h1 className="text-4xl font-light text-gray-900 mb-3">{t("Course Quote")}</h1>
-              <p className="text-lg text-gray-600 max-w-md mx-auto">
-                {t("Fill out the form to generate your quote")}
-              </p>
-            </div>
-
-            {/* Form Card */}
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+              
               <div className="p-8">
-                <div className="mb-8">
-                  <h2 className="text-2xl font-light text-gray-900 mb-2">{t("Personal Information")}</h2>
-                  <p className="text-gray-600">{t("Complete your details to generate the quote")}</p>
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
+                    <img src={Images.logo || "/placeholder.svg"} alt="logo" width={70} height={70} />
+                  </div>
+                  <h1 className="text-4xl font-light text-gray-900 mb-3">{t("Course Quote")}</h1>
+                  <p className="text-lg text-gray-600 max-w-md mx-auto">
+                    {t("Fill out the form to generate your quote")}
+                  </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -385,6 +357,8 @@ export default function CourseQuote() {
                           nationality={formData.nationality}
                           renewalCourses={formData.renewalCourses}
                           availableCourses={apiCourses}
+                          loading={loadingCourses}
+                          error={errorCourses}
                         />
                       </div>
                       <div className="space-y-2">
@@ -399,6 +373,8 @@ export default function CourseQuote() {
                             onChange={(courses) => handleInputChange("renewalCourses", courses)}
                             government={formData.government}
                             availableCourses={apiCourses}
+                            loading={loadingCourses}
+                            error={errorCourses}
                           />
                       </div>
                     </>

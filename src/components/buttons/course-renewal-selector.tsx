@@ -4,14 +4,17 @@ import type React from "react"
 import { useState, useMemo, useRef, useEffect } from "react"
 import { useTranslation } from "react-i18next" // Importa useTranslation
 import { Course } from "../../services/courses"
+import { LoadingSpinner } from "../icons/icons"
 
 
 const CourseRenewalSelector: React.FC<{
   selectedCourses: string[]
   onChange: (courses: string[]) => void
   government: string
-  availableCourses: Course[] // Esta es la prop crucial que recibirás
-}> = ({ selectedCourses, onChange, government, availableCourses }) => { // Asegúrate de desestructurar availableCourses
+  availableCourses: Course[]
+  loading: boolean;
+  error: string | null;
+}> = ({ selectedCourses, onChange, government, availableCourses, loading, error }) => { // Asegúrate de desestructurar availableCourses
   const { t } = useTranslation() // Inicializa el hook de traducción
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -146,11 +149,12 @@ const CourseRenewalSelector: React.FC<{
                   className="w-full h-10 px-4 pl-10 pr-10 bg-gray-50 border border-gray-200 rounded-lg
                            focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent
                            text-sm"
+                  disabled={loading || !!error}
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   <SearchIcon />
                 </div>
-                {searchTerm && (
+                {searchTerm && !loading && !error && ( // Solo mostrar el botón de limpiar si no está cargando/error
                   <button
                     type="button"
                     onClick={clearSearch}
@@ -164,7 +168,20 @@ const CourseRenewalSelector: React.FC<{
 
             {/* Lista de cursos renovables filtrados */}
             <div className="max-h-60 overflow-y-auto">
-              {renewableCourses.length > 0 ? (
+              {loading ? (
+                <div className="flex flex-col items-center justify-center p-6 h-full text-gray-700">
+                  <LoadingSpinner/>
+                  <span className="mt-3 text-lg font-medium">{t("Loading courses...")}</span>
+                  <p className="text-sm text-gray-500 mt-1">{t("Please wait while we fetch the courses.")}</p>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center p-6 h-full text-red-600 text-center">
+                    <svg className="w-6 h-6 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="font-semibold text-sm">{t("Error loading courses")}</p>
+                </div>
+              ) : renewableCourses.length > 0 ? (
                 renewableCourses.map((course) => {
                   return (
                     <label
@@ -221,6 +238,8 @@ const CourseRenewalSelector: React.FC<{
                   type="button"
                   onClick={() => toggleCourse(String(course.id))}
                   className="text-red-500 hover:text-red-700 p-1 ml-3 flex-shrink-0"
+                  disabled={loading || !!error}
+
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

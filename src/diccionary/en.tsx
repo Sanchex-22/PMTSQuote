@@ -6,6 +6,7 @@ const en = {
     "Courses": "Cursos",
     "License Procedure": "Tramite de Licencia",
     "Liberia COC": "Liberia COC",
+    "Physical Examination": "Examen Médico",
 
     // Header
     "Course Quote": "Cotización de Cursos",
