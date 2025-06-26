@@ -454,7 +454,6 @@ export default function CourseQuote() {
             </div>
           </>
         ) : (
-          /* Confirmation View (sin cambios aquí) */
           <>
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-6 shadow-lg text-white">
@@ -472,20 +471,11 @@ export default function CourseQuote() {
                   <p className="text-gray-600">{t("Summary of your maritime course quote")}</p>
                 </div>
                 {registration && (
-                  <>
-                    {/* --- MENSAJE NUEVO --- */}
-                    {/* Se ha añadido este bloque para mostrar el mensaje solicitado */}
-                    <div className="bg-blue-50 border border-blue-200 text-center p-4 rounded-2xl mb-6">
+                  <>                    <div className="bg-blue-50 border border-blue-200 text-center p-4 rounded-2xl mb-6">
                       <p className="font-semibold text-blue-800">
                         {t("Please check your email to see the full quote.")}
                       </p>
                     </div>
-                    {/* --- FIN MENSAJE NUEVO --- */}
-
-                    {/* --- BLOQUE DE PRECIO ELIMINADO --- */}
-                    {/* El div que mostraba el "Total Cost" ha sido eliminado de aquí. */}
-
-                    {/* --- LISTA DE CURSOS (SIN CAMBIOS) --- */}
                     <div className="space-y-4 mb-6">
                       {registration.courses.length > 0 && (
                         <div>

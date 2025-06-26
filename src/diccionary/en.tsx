@@ -30,6 +30,10 @@ const en = {
     "you@email.com": "tu@email.com",
     "Phone": "Teléfono",
     "+1 (123) 456-7890": "+1 (123) 456-7890",
+    "Search renewal courses...": "Buscar cursos de renovación...",
+    "Select one or more courses": "Selecciona uno o más cursos",
+    "Security Verification": "Verificación de Seguridad",
+    "I am not a robot": "No soy un robot",
 
     // Form Section: Course Selection
     "Fill out the form to generate your quote": "Llena el formulario para generar tu cotización",
