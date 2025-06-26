@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
 import { useTranslation } from "react-i18next" // Importa useTranslation
 import { Course } from "../../services/courses"
 
@@ -24,7 +24,22 @@ const CourseRenewalSelector: React.FC<{
       return course.price_foreign_renewal ?? 0 // Usar nullish coalescing para seguridad
     }
   }
-
+    const selectRef = useRef<HTMLDivElement>(null);
+    
+      useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          if (
+            selectRef.current &&
+            !selectRef.current.contains(event.target as Node)
+          ) {
+            setIsOpen(false);
+          }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+      }, []);
   // Filtrar solo cursos que tienen precio de renovación
   const renewableCourses = useMemo(() => {
     return availableCourses.filter((course) => { // <--- CAMBIO: Usar availableCourses
@@ -88,7 +103,7 @@ const CourseRenewalSelector: React.FC<{
   )
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" ref={selectRef}>
       <div className="relative">
         <button
           type="button"

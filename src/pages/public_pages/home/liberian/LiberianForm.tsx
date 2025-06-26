@@ -59,6 +59,51 @@ const LiberiaForm: FC = () => {
     otherCurrentRank: "",
     currentRankDetail: "",
   });
+
+  const resetForm = useCallback(() => {
+    // 1. Restablecer el objeto de información personal
+    setPersonalInfo({
+      fullName: "",
+      passport: "",
+      nationality: "",
+      cocFlag: "",
+      email: "",
+      phone: "",
+      birthDate: "",
+      address: "",
+      currentRankText: "",
+      totalExperience: "",
+      lastVessel: "",
+      vesselTypes: "",
+      otherCurrentRank: "",
+      currentRankDetail: "",
+    });
+
+    // 2. Restablecer los archivos
+    setIdPhotoFile(null);
+    setPassportPhotoFile(null);
+    setRlm105File(null);
+
+    // 3. Restablecer el resto de los estados del formulario
+    setSelectedRank("");
+    setCertificates([]);
+    setComments("");
+    setConfirmRequirements(false);
+    setCocStatus("none");
+    setErrors([]);
+    // El estado 'progress' se actualizará automáticamente a 0 gracias al useEffect.
+
+    // 4. (Importante) Limpiar visualmente los campos de tipo 'file'
+    // React no puede controlar el valor de un <input type="file">,
+    // así que lo hacemos manualmente para que el usuario no vea el nombre del archivo anterior.
+    (document.getElementById("idPhoto") as HTMLInputElement).value = "";
+    (document.getElementById("passportPhoto") as HTMLInputElement).value = "";
+    (document.getElementById("rlm105Upload") as HTMLInputElement).value = "";
+
+    // Desplazarse al principio del formulario
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   const [idPhotoFile, setIdPhotoFile] = useState<File | null>(null);
   const [passportPhotoFile, setPassportPhotoFile] = useState<File | null>(null);
   const [rlm105File, setRlm105File] = useState<File | null>(null);
@@ -89,24 +134,33 @@ const LiberiaForm: FC = () => {
     }
   };
 
-const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "id" | "passport") => {
+  const handlePhotoUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "id" | "passport"
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("File is too large", { description: "Maximum allowed size is 5MB." });
+      toast.error("File is too large", {
+        description: "Maximum allowed size is 5MB.",
+      });
       e.target.value = "";
       return;
     }
     if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type)) {
-      toast.error("File type not allowed", { description: "Only JPG and PNG files are accepted." });
+      toast.error("File type not allowed", {
+        description: "Only JPG and PNG files are accepted.",
+      });
       e.target.value = "";
       return;
     }
 
     if (type === "id") setIdPhotoFile(file);
     else setPassportPhotoFile(file);
-    toast.success(`${type === 'id' ? 'ID' : 'Passport'} photo uploaded successfully!`);
+    toast.success(
+      `${type === "id" ? "ID" : "Passport"} photo uploaded successfully!`
+    );
   };
 
   const handleRemovePhoto = (type: "id" | "passport") => {
@@ -119,17 +173,21 @@ const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "id" | 
     }
   };
 
- const handleRLM105Upload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRLM105Upload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("File is too large", { description: "Maximum allowed size is 10MB." });
+      toast.error("File is too large", {
+        description: "Maximum allowed size is 10MB.",
+      });
       e.target.value = "";
       return;
     }
     if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type)) {
-      toast.error("File type not allowed", { description: "Only PDF, JPG, and PNG files are accepted." });
+      toast.error("File type not allowed", {
+        description: "Only PDF, JPG, and PNG files are accepted.",
+      });
       e.target.value = "";
       return;
     }
@@ -307,6 +365,7 @@ const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "id" | 
         id: "submit-toast",
         description: `Your application reference is: ${result.applicationId}`,
       });
+      resetForm();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Ocurrió un error inesperado.";
@@ -830,7 +889,7 @@ const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "id" | 
             </div>
           </div>
           {/* ... */}
-          
+
           {certificates.length > 0 && (
             <div className={boxStyles}>
               {/* ... */}

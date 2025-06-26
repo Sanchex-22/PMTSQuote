@@ -95,7 +95,7 @@ export default function CourseQuote() {
         const service = new CourseServices()
         const data = await service.getAllCourses()
         setApiCourses(data)
-      } catch (err: unknown) { // Mejor tipado para el error
+      } catch (err: unknown) {
         console.error("Error al cargar cursos:", err)
         setErrorCourses(t("Failed to load courses. Please try again later.") + (err instanceof Error ? ` ${err.message}` : ''));
       } finally {

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next" // <--- Importa useTranslation
 import { GraduationIcon, SearchIcon, ClearIcon } from "../../../../components/icons/icons"
 // REMOVER: import { Courses, courses } from "../../../../data/courses" // <--- Elimina esta línea
@@ -25,8 +25,22 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
   const { t } = useTranslation() // <--- Inicializa el hook de traducción
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-
-  // Filtrar cursos basado en el término de búsqueda
+  const selectRef = useRef<HTMLDivElement>(null);
+  
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          selectRef.current &&
+          !selectRef.current.contains(event.target as Node)
+        ) {
+          setIsOpen(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
   const filteredCourses = useMemo(() => {
     if (!searchTerm.trim()) return availableCourses // <--- CAMBIO: Usar availableCourses
 
@@ -62,7 +76,7 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" ref={selectRef}>
       <div className="relative">
         <button
           type="button"
