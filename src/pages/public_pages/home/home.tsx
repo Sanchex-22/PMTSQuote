@@ -2,7 +2,7 @@
 
 import Images from "../../../assets";
 import { useTranslation } from "react-i18next";
-import { BookOpen, FileText, Stethoscope, Globe2 } from "lucide-react";
+import { BookOpen, FileText, Stethoscope, Globe2, BookAIcon } from "lucide-react";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -27,6 +27,11 @@ export default function Home() {
       href: "/liberian",
       icon: <Globe2 className="w-6 h-6 text-purple-600" />,
       title: t("Liberia COC"),
+    },
+    {
+      href: "/evaluation",
+      icon: <BookAIcon className="w-6 h-6 text-red-600" />,
+      title: t("Instructor Evaluation"),
     },
   ];
 

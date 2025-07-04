@@ -20,6 +20,7 @@ import LicenseQuote from "../pages/public_pages/home/license/licence";
 import MedicalCertificateForm from "../pages/public_pages/home/medical-cert/MedicalCert";
 import LiberiaForm from "../pages/public_pages/home/liberian/LiberianForm";
 import PrivacyPolicy from "../pages/public_pages/PrivacyPolicy/Privacy";
+import Evaluation from "../pages/public_pages/home/evaluation/evaluation";
 
 // Tipado de usuario
 export interface User {
@@ -64,8 +65,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         path="/"
         element={
           <EnvolveLayout
-            title="PmtsQ"
-            description="PmtsQ"
+            title="PmtsQ | Home"
+            description="PmtsQ | Home"
             isLogged={isLogged}
             profile={profile}
             currentPathname={pathnameLocation}
@@ -80,8 +81,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         path="/courses"
         element={
           <EnvolveLayout
-            title="PmtsQ"
-            description="PmtsQ"
+            title="PmtsQ | Courses"
+            description="Courses"
             isLogged={isLogged}
             profile={profile}
             currentPathname={pathnameLocation}
@@ -95,8 +96,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         path="/licenses"
         element={
           <EnvolveLayout
-            title="PmtsQ"
-            description="PmtsQ"
+            title="PmtsQ | Licenses"
+            description="Licenses"
             isLogged={isLogged}
             profile={profile}
             currentPathname={pathnameLocation}
@@ -108,11 +109,27 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       />
 
       <Route
+        path="/evaluation"
+        element={
+          <EnvolveLayout
+            title="PmtsQ | Instructor Evaluation"
+            description="Instructor Evaluation"
+            isLogged={isLogged}
+            profile={profile}
+            currentPathname={pathnameLocation}
+            publicRoute={true}
+          >
+            <Evaluation />
+          </EnvolveLayout>
+        }
+      />
+
+      <Route
         path="/medical"
         element={
           <EnvolveLayout
-            title="PmtsQ"
-            description="PmtsQ"
+            title="PmtsQ | Medical Certificate"
+            description="Medical Certificate"
             isLogged={isLogged}
             profile={profile}
             currentPathname={pathnameLocation}
@@ -126,8 +143,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         path="/liberian"
         element={
           <EnvolveLayout
-            title="PmtsQ"
-            description="PmtsQ"
+            title="PmtsQ | Liberia Form"
+            description="Liberia Form"
             isLogged={isLogged}
             profile={profile}
             currentPathname={pathnameLocation}
