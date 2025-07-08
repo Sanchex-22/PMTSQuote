@@ -85,6 +85,7 @@ export default function CourseQuote() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [captchaVerified, setCaptchaVerified] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [coursesTermsAccepted, setCoursesTermsAccepted] = useState(false)
 
   // EFECTO PARA CARGAR LOS CURSOS DE LA API AL MONTAR EL COMPONENTE
   useEffect(() => {
@@ -419,6 +420,20 @@ export default function CourseQuote() {
                           <a href="#" className="text-blue-600 hover:underline">
                             privacy policy
                           </a>
+                        </Trans>
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <CustomCheckbox
+                      id="courses-terms"
+                      checked={coursesTermsAccepted}
+                      onChange={setCoursesTermsAccepted}
+                      required
+                      label={
+                        <Trans i18nKey="I agree that these courses are 100% in-person">
+                          {t("I agree that these courses are 100% in-person")}
                         </Trans>
                       }
                     />

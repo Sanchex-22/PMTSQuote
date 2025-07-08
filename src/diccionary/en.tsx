@@ -132,6 +132,7 @@ const en = {
     "Fecha, tipo de cirugía y estado actual (o N/A)" : "Fecha, tipo de cirugía y estado actual (o N/A)",
     "Vaccine type and dose (or N/A)": "Tipo de vacuna y dosis (o N/A)",
     "Upload Files": "Subir Archivos",
+    "I agree that these courses are 100% in-person":"Estoy de acuerdo que estos cursos son 100% presenciales"
   }
 };
 

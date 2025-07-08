@@ -117,7 +117,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPathname }) => {
                 <Menu className="block h-6 w-6" aria-hidden="true" />
               )}
             </button>
-          </div>
+            </div>
           </div>
         </div>
       </div>

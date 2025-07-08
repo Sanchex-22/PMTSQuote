@@ -1,10 +1,13 @@
+
 import { UserProfile } from "../context/userProfileContext";
 import { authRoles } from "../diccionary/constants";
+import { FaMoneyBill } from "react-icons/fa";
 
 const routesConfig = [
   { 
+    icon: FaMoneyBill,
     name: "account", 
-    href: "/account/suscription", 
+    href: "/account/quotes", 
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator, authRoles.user],
     subroutes: [
       { name: "Quotes", href: "/account/quotes" },

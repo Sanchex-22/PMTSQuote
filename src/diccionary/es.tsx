@@ -90,6 +90,7 @@ const es = {
     "Escribe aquí tu consulta sobre las licencias que necesitas...": "Write your query here about the licenses you need...",
     "No eres tú, somos nosotros": "It's not you, it's us",
     "Volver a la página de inicio": "Go to home page",
+    "Estoy de acuerdo que estos cursos son 100% presenciales": "I agree that these courses are 100% in-person",
   }
 };
 
