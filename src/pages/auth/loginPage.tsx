@@ -11,7 +11,7 @@ function LoginPage() {
 
   return (
     <div className="h-[90dvh] flex items-center justify-center text-blue-50 p-4">
-      <div className="w-full max-w-md p-8 space-y-4 bg-white border  rounded-lg shadow-xl relative overflow-hidden">
+      <div className="w-full max-w-md p-8 space-y-4 bg-white border  rounded-lg shadow-xl overflow-hidden">
 
         <div className="flex justify-center mb-4">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
