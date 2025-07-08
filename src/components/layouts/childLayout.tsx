@@ -1,7 +1,6 @@
 
 import Headers from "../meta/headers";
 import { UserProfile } from "../../context/userProfileContext";
-import Sidebar from "./sidebar";
 import AdminNavbar from "./adminNavbar";
 import Footer from "./footer";
 import Navbar from "./navbar";
