@@ -1,12 +1,12 @@
 // UserProfileContext.tsx
 import React, { ReactNode, useState, useMemo } from 'react';
 import { decodeTokenPublic } from '../utils/decode';
-import { authServices } from '../services/authentication';
+import { authServices } from '../actions/authentication';
 
 // Interfaz para los metadatos decodificados
 export type DecodedMetaData = {
   id: string;
-  username: string;
+  username?: string;
   email?: string;
   roles?: string;
 }
@@ -14,8 +14,8 @@ export type DecodedMetaData = {
 // Perfil de usuario que manejará el contexto
 export type UserProfile =  {
   id: string;
-  username: string;
-  email: string;
+  username?: string;
+  email?: string;
   roles?: string;
 }
 
@@ -39,25 +39,28 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
     const currentUser = authServices.getCurrentUser();
     return currentUser ? JSON.stringify(currentUser) : null;
   });
-
-  // Decodificar el token y extraer metadata solo una vez
   const metaData = useMemo<DecodedMetaData | null>(() => {
     const decoded = decodeTokenPublic(jwt);
-    return decoded?.metaData ?? null;
+    if (decoded && typeof decoded === 'object' && 'id' in decoded) {
+      return {
+        id: (decoded as any).id,
+        username: (decoded as any).username,
+        email: (decoded as any).email,
+        roles: (decoded as any).role,
+      };
+    }
+    return null;
   }, [jwt]);
-
-  // Estado del perfil de usuario
-  const [profile, setProfile] = useState<UserProfile | null>(() =>
-    metaData
-      ? {
-          id: metaData.id,
-          username: metaData.username,
-          email: metaData.email ?? '',
-          roles: metaData.roles ?? 'user'
-        }
-      : null
-  );
-
+  const [profile, setProfile] = useState<UserProfile | null>(() => {
+    if (!metaData) return null;
+    return {
+      id: metaData.id,
+      username: metaData.username ?? 'n/a',
+      email: metaData.email ?? 'n/a',
+      roles: metaData.roles ?? 'user'
+    };
+  });
+  console.log("UserProfileProvider profile", profile);
   return (
     <UserProfileContext.Provider value={{ profile, setProfile }}>
       {children}

@@ -39,7 +39,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transition-all">
-          <div className="p-10 space-y-8">
+          <div className="p-4 md:p-10 space-y-8">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl shadow-md mb-4">
                 <img src={Images.logo} alt="logo" width={60} height={60} />

@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useState } from 'react';
 import Context from '../context/userContext';
-import { authServices } from '../services/authentication';
+import { authServices } from '../actions/authentication';
 
 // Define types for the context value and hook return type
 interface UserContextValue {
@@ -32,7 +32,7 @@ export default function useUser(): UseUserReturn {
       window.sessionStorage.removeItem('jwt');
       setState({ loading: false, error: true });
       console.error(err);
-      throw err; // Rethrow the error to be handled by the calling function
+      throw err;
     }
   }, [setJWT]);
 

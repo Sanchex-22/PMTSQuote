@@ -8,9 +8,9 @@ const routesConfig = [
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator, authRoles.user],
     subroutes: [
       { name: "Quotes", href: "/account/quotes" },
-      { name: "Certs", href: "/account/certificates" },
-      { name: "Settings", href: "/account/settings" },
-      { name: "Security", href: "/account/security" },
+      // { name: "Certs", href: "/account/certificates" },
+      // { name: "Settings", href: "/account/settings" },
+      // { name: "Security", href: "/account/security" },
     ]
   },
   { 

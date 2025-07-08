@@ -2,8 +2,8 @@ import { jwtDecode } from "jwt-decode"
 
 export interface DecodedToken {
     id: string
-    username: string
-    roles: string
+    username?: string
+    roles?: string
     exp: number
     iat: number
   }

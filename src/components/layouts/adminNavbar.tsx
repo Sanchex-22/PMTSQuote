@@ -19,7 +19,8 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   currentPathname,
   profile,
 }) => {
-  const userRoles = profile?.roles ? getUserRoles(profile) : [];
+  console.log("AdminNavbar profile", profile?.username);
+  const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
   const filteredNavLinks: { href: string; name: string }[] = userRoles.flatMap((role: string) =>
     getMainRoutesForRole(role as "user" | "super_admin" | "admin" | "moderator").map((route: { href: string; name: string } | string) => ({
       href: typeof route === "string" ? route : route.href,
@@ -57,7 +58,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   return (
     <nav
       id="navbar"
-      className={`w-full flex justify-center h-12 md:h-16 z-20 mb-16 ${
+      className={`w-full flex justify-center h-12 md:h-16 z-20 mb-2 ${
         currentPathname.name === "/"
           ? ""
           : "bg-gradient-to-r from-white via-white/80 to-white/90 border-b-2 border-black/20"
@@ -65,13 +66,21 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     >
       <div className="max-w-7xl mx-auto main-content w-full px-6 md:px-5 flex justify-between h-12 md:h-16 items-center *:text-black">
         <div className="flex *:px-4 items-center h-full">
-          <img src={Images.logoColor || "#"} className="w-16 h-16" />
+          <div className="flex items-center space-x-2">
+            <img src={Images?.pmts || "#"}
+              alt="logo"
+              width={50}
+              height={50}
+              className="border-r-2 pr-2"
+              />
+              <span className="text-yellow-700 font-bold tracking-wider">PMTS</span>
+          </div>
           {filteredNavLinks.length > 0 ? (
             filteredNavLinks.map((link, index) => (
               <div key={index}>
                 <a
                   href={link.href}
-                  className="hidden md:block hover:text-chocolate-200 text-lg font-bold h-full duration-500 select-none"
+                  className="hidden md:block hover:text-yellow-700 text-sm font-bold h-full duration-500 select-none uppercase tracking-wider"
                 >
                   {link.name}
                 </a>

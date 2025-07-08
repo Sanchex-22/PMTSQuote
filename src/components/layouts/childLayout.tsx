@@ -36,7 +36,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
 
     <>
       <Headers title={title} description={description} />
-      <main className="w-full relative min-h-screen bg-slate-50">
+      <main className="w-full relative min-h-screen bg-slate-50 overflow-x-hidden">
         {publicRoute ? 
         <>
         <Navbar
@@ -51,8 +51,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
           isLogged={isLogged}
           profile={profile}/>
         }
-        <Sidebar></Sidebar>
-        <div className="page-content">
+        <div id="page-content" className="z-10">
           {children}
           <Toaster richColors position="top-right" />
           <Analytics />

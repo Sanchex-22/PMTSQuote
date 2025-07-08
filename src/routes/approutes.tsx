@@ -21,6 +21,7 @@ import MedicalCertificateForm from "../pages/public_pages/home/medical-cert/Medi
 import LiberiaForm from "../pages/public_pages/home/liberian/LiberianForm";
 import PrivacyPolicy from "../pages/public_pages/PrivacyPolicy/Privacy";
 import Evaluation from "../pages/public_pages/home/evaluation/evaluation";
+import QuoteDetailPage from "../pages/account/quotes/id/quoteDetail";
 
 // Tipado de usuario
 export interface User {
@@ -217,7 +218,16 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
           </ProtectedRoute>
         }
       >
-        <Route path="quotes" element={<QuotesSection />} />
+        <Route path="quotes" 
+        element={
+          <QuotesSection />
+        } 
+        />
+        <Route path="quotes/:id" 
+        element={
+          <QuoteDetailPage />
+        } 
+        />
         <Route path="certificates" element={<CertificatesSection />} />
         <Route path="services" element={<ServicesSection />} />
       </Route>

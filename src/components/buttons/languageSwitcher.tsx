@@ -3,7 +3,11 @@
 import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
 
-const LanguageSwitcher = () => {
+interface LanguageSwitcherProps {
+  className?: string;
+}
+
+const LanguageSwitcher = ({ className }: LanguageSwitcherProps) => {
   const { i18n } = useTranslation()
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language)
 
@@ -18,7 +22,7 @@ const LanguageSwitcher = () => {
   }
 
   return (
-    <div className="flex gap-2 p-4">
+    <div className={`${className} flex gap-2 p-4`}>
       <button
         onClick={() => changeLanguage("en")}
         className={`
