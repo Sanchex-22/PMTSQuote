@@ -60,7 +60,6 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
       roles: metaData.roles ?? 'user'
     };
   });
-  console.log("UserProfileProvider profile", profile);
   return (
     <UserProfileContext.Provider value={{ profile, setProfile }}>
       {children}
