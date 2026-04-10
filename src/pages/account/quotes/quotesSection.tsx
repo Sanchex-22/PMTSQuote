@@ -22,7 +22,13 @@ interface PaginatedResponse {
 }
 
 const formatQuoteId = (id: number) => `PMTS/Q/${id.toString().padStart(4, '0')}`;
-const formatDate = (iso: string) => new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const formatDate = (iso: string) => {
+  const opts = { timeZone: 'America/Panama' };
+  const d = new Date(iso);
+  const date = d.toLocaleDateString('es-ES', { ...opts, day: '2-digit', month: '2-digit', year: 'numeric' });
+  const time = d.toLocaleTimeString('es-ES', { ...opts, hour: '2-digit', minute: '2-digit' });
+  return `${date} · ${time}`;
+};
 const generateDescription = (courses: QuoteCourse[]) => {
   if (!courses?.length) return 'Sin cursos';
   const names = courses.map(qc => qc.course.name);
