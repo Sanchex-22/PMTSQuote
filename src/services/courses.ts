@@ -37,9 +37,11 @@ export class CourseServices {
   }
 
   async getAllCourses(): Promise<Course[]> {
-    const response = await fetch(`${API_URL}/api/courses/getAllCourses`);
+    const response = await fetch(`${API_URL}/api/courses/getAllCourses?limit=500`);
     if (!response.ok) throw new Error(`Error ${response.status}`);
-    return response.json();
+    const json = await response.json();
+    // El endpoint devuelve { data: Course[], pagination: {...} } o Course[] (retrocompatibilidad)
+    return Array.isArray(json) ? json : (json.data ?? []);
   }
 
   async createCourse(data: CourseFormData): Promise<Course> {
