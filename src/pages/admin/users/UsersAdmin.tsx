@@ -1,6 +1,6 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import useSWR from 'swr';
 import { userServices, UserData, UserFormData } from '../../../services/userServices';
 import Context from '../../../context/userContext';
@@ -149,6 +149,7 @@ export default function UsersAdmin() {
   const jwt = rawJwt ? (() => { try { return JSON.parse(rawJwt)?.token || rawJwt; } catch { return rawJwt; } })() : '';
 
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [editUser, setEditUser] = useState<UserData | null>(null);
   const [deleteUser, setDeleteUser] = useState<UserData | null>(null);
@@ -158,8 +159,18 @@ export default function UsersAdmin() {
     `${API_URL}/api/user?page=${page}&limit=${LIMIT}`, fetcher
   );
 
-  const users = data?.data || [];
+  const allUsers = data?.data || [];
   const pagination = data?.pagination;
+
+  const users = useMemo(() => {
+    if (!search.trim()) return allUsers;
+    const q = search.toLowerCase();
+    return allUsers.filter(u =>
+      u.name?.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.role.toLowerCase().includes(q)
+    );
+  }, [allUsers, search]);
   const svc = new userServices(jwt);
 
   const handleCreate = async (fd: UserFormData) => {
@@ -194,6 +205,17 @@ export default function UsersAdmin() {
         </button>
       </div>
 
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1); }}
+          placeholder="Buscar por nombre, email o rol..."
+          className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent placeholder:text-gray-400"
+        />
+      </div>
+
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="py-12 text-center text-gray-400 text-sm">Cargando usuarios...</div>
@@ -212,7 +234,9 @@ export default function UsersAdmin() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {users.length === 0 && (
-                  <tr><td colSpan={6} className="text-center py-12 text-gray-400">No hay usuarios.</td></tr>
+                  <tr><td colSpan={6} className="text-center py-12 text-gray-400">
+                    {search ? `Sin resultados para "${search}"` : 'No hay usuarios.'}
+                  </td></tr>
                 )}
                 {users.map((u, i) => (
                   <tr key={u.id} className="hover:bg-gray-50 transition-colors">
@@ -252,7 +276,7 @@ export default function UsersAdmin() {
         )}
       </div>
 
-      {pagination && <Pagination pagination={pagination} page={page} setPage={setPage} />}
+      {!search && pagination && <Pagination pagination={pagination} page={page} setPage={setPage} />}
 
       {showCreate && <Modal title="Nuevo usuario" onClose={() => setShowCreate(false)}>
         <UserForm onSubmit={handleCreate} onCancel={() => setShowCreate(false)} />

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import useSWR from 'swr';
-import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -44,14 +44,24 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
 
 export default function ClientsAdmin() {
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
 
   const { data, error, isLoading } = useSWR<PaginatedClients>(
     `${API_URL}/api/clients/getAll?page=${page}&limit=${LIMIT}`,
     fetcher
   );
 
-  const clients = data?.data || [];
+  const allClients = data?.data || [];
   const pagination = data?.pagination;
+
+  const clients = useMemo(() => {
+    if (!search.trim()) return allClients;
+    const q = search.toLowerCase();
+    return allClients.filter(c =>
+      c.name?.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q)
+    );
+  }, [allClients, search]);
 
   if (error) return <p className="text-center py-8 text-red-500 text-sm">Error al cargar clientes.</p>;
 
@@ -63,6 +73,17 @@ export default function ClientsAdmin() {
           <h1 className="text-xl font-semibold text-gray-800">Clientes</h1>
           {pagination && <p className="text-sm text-gray-400 mt-0.5">{pagination.total} clientes registrados</p>}
         </div>
+      </div>
+
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1); }}
+          placeholder="Buscar por nombre o email..."
+          className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent placeholder:text-gray-400"
+        />
       </div>
 
       {/* Table card */}
@@ -88,7 +109,9 @@ export default function ClientsAdmin() {
               <tbody className="divide-y divide-gray-100">
                 {clients.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-gray-400">No hay clientes aún.</td>
+                    <td colSpan={9} className="text-center py-12 text-gray-400">
+                      {search ? `Sin resultados para "${search}"` : 'No hay clientes aún.'}
+                    </td>
                   </tr>
                 )}
                 {clients.map((client, i) => {
@@ -139,8 +162,8 @@ export default function ClientsAdmin() {
         )}
       </div>
 
-      {/* Paginación — siempre visible */}
-      {pagination && (
+      {/* Paginación — oculta durante búsqueda local */}
+      {!search && pagination && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-400">
             {(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, pagination.total)} de {pagination.total}
