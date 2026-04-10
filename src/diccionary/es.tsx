@@ -158,7 +158,6 @@ const es = {
     "New Quote": "New Quote",
     "License Procedure": "License Procedure",
     "Physical Examination": "Physical Examination",
-    "Liberia COC": "Liberia COC",
     "Help Us Help You": "Help Us Help You",
     "What information do you need?": "What information do you need?",
   }
