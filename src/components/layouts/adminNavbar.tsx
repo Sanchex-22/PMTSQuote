@@ -51,11 +51,13 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
 
     const openButton = document?.getElementById("open-menu");
     const side = document?.getElementById("sidebar");
+    const hiddenrelative = document?.getElementById("hidden-relative");
 
     if (!openButton) return;
     const openMenu = () => {
       document.body.classList.add("overflow-hidden");
       side?.classList.remove("invisible", "translate-x-full", "hidden");
+      hiddenrelative?.classList.remove("relative");
     };
     openButton.addEventListener("click", openMenu);
 

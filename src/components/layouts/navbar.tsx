@@ -132,7 +132,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPathname }) => {
 
       {/* Panel del menú móvil - Ocupa toda la pantalla y tiene fondo blanco */}
       <div
-        className={`fixed top-0 right-0 h-screen w-full bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out md:w-1/4
+        className={`fixed top-0 right-0 h-screen w-full bg-white shadow-lg z-[100] transform transition-transform duration-300 ease-in-out md:w-1/4
           ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
         role="dialog"
         aria-modal="true"
