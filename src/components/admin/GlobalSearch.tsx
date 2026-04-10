@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, BookOpen, Users, UserCheck, X, Loader2 } from 'lucide-react';
+import Context from '../../context/userContext';
+import UserProfileContext from '../../context/userProfileContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -39,6 +41,16 @@ function useDebounce<T>(value: T, delay: number): T {
   return debounced;
 }
 
+function getJwtToken(raw: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed?.token ?? null;
+  } catch {
+    return raw;
+  }
+}
+
 export function GlobalSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Result[]>([]);
@@ -51,68 +63,86 @@ export function GlobalSearch() {
   const navigate = useNavigate();
   const debouncedQuery = useDebounce(query, 300);
 
-  // Search across endpoints
+  const { jwt } = useContext(Context) as { jwt: string | null };
+  const profileCtx = useContext(UserProfileContext);
+  const role = profileCtx?.profile?.roles ?? 'user';
+  const isAdmin = role === 'admin' || role === 'super_admin';
+
+  const token = getJwtToken(jwt);
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
   const runSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); setOpen(false); return; }
     setLoading(true);
     try {
-      const [coursesRes, usersRes, clientsRes] = await Promise.allSettled([
-        fetch(`${API_URL}/api/courses/getAllCourses?page=1&limit=100`).then(r => r.json()),
-        fetch(`${API_URL}/api/user?page=1&limit=100`).then(r => r.json()),
-        fetch(`${API_URL}/api/clients/getAll?page=1&limit=100`).then(r => r.json()),
-      ]);
-
       const lower = q.toLowerCase();
       const found: Result[] = [];
 
-      if (coursesRes.status === 'fulfilled') {
-        const courses = coursesRes.value?.data || coursesRes.value || [];
-        courses
-          .filter((c: any) =>
-            c.name?.toLowerCase().includes(lower) ||
-            c.abbr?.toLowerCase().includes(lower) ||
-            c.imo_no?.toLowerCase().includes(lower)
-          )
-          .slice(0, 5)
-          .forEach((c: any) => found.push({
-            id: c.id, type: 'course',
-            label: c.name,
-            sublabel: [c.abbr, c.imo_no].filter(Boolean).join(' · ') || undefined,
-            href: '/courses-admin',
-          }));
+      // Courses — accesible para admin y moderador
+      try {
+        const res = await fetch(`${API_URL}/api/courses/getAllCourses?page=1&limit=100`, { headers: authHeaders });
+        if (res.ok) {
+          const json = await res.json();
+          const courses = json?.data ?? (Array.isArray(json) ? json : []);
+          courses
+            .filter((c: any) =>
+              c.name?.toLowerCase().includes(lower) ||
+              c.abbr?.toLowerCase().includes(lower) ||
+              c.imo_no?.toLowerCase().includes(lower)
+            )
+            .slice(0, 5)
+            .forEach((c: any) => found.push({
+              id: c.id, type: 'course',
+              label: c.name,
+              sublabel: [c.abbr, c.imo_no].filter(Boolean).join(' · ') || undefined,
+              href: '/courses-admin/list',
+            }));
+        }
+      } catch { /* silencioso */ }
+
+      // Usuarios — solo admin y super_admin
+      if (isAdmin) {
+        try {
+          const res = await fetch(`${API_URL}/api/user?page=1&limit=100`, { headers: authHeaders });
+          if (res.ok) {
+            const json = await res.json();
+            const users = json?.data ?? (Array.isArray(json) ? json : []);
+            users
+              .filter((u: any) =>
+                u.name?.toLowerCase().includes(lower) ||
+                u.email?.toLowerCase().includes(lower)
+              )
+              .slice(0, 5)
+              .forEach((u: any) => found.push({
+                id: u.id, type: 'user',
+                label: u.name || u.email,
+                sublabel: u.name ? u.email : undefined,
+                href: '/users/list',
+              }));
+          }
+        } catch { /* silencioso */ }
       }
 
-      if (usersRes.status === 'fulfilled') {
-        const users = usersRes.value?.data || usersRes.value || [];
-        users
-          .filter((u: any) =>
-            u.name?.toLowerCase().includes(lower) ||
-            u.email?.toLowerCase().includes(lower)
-          )
-          .slice(0, 5)
-          .forEach((u: any) => found.push({
-            id: u.id, type: 'user',
-            label: u.name || u.email,
-            sublabel: u.name ? u.email : undefined,
-            href: '/users',
-          }));
-      }
-
-      if (clientsRes.status === 'fulfilled') {
-        const clients = clientsRes.value?.data || clientsRes.value || [];
-        clients
-          .filter((c: any) =>
-            c.name?.toLowerCase().includes(lower) ||
-            c.email?.toLowerCase().includes(lower)
-          )
-          .slice(0, 5)
-          .forEach((c: any) => found.push({
-            id: c.id, type: 'client',
-            label: c.name || c.email,
-            sublabel: c.name ? c.email : undefined,
-            href: '/clients',
-          }));
-      }
+      // Clientes — admin y moderador
+      try {
+        const res = await fetch(`${API_URL}/api/clients/getAll?page=1&limit=100`, { headers: authHeaders });
+        if (res.ok) {
+          const json = await res.json();
+          const clients = json?.data ?? (Array.isArray(json) ? json : []);
+          clients
+            .filter((c: any) =>
+              c.name?.toLowerCase().includes(lower) ||
+              c.email?.toLowerCase().includes(lower)
+            )
+            .slice(0, 5)
+            .forEach((c: any) => found.push({
+              id: c.id, type: 'client',
+              label: c.name || c.email,
+              sublabel: c.name ? c.email : undefined,
+              href: '/clients/list',
+            }));
+        }
+      } catch { /* silencioso */ }
 
       setResults(found);
       setOpen(found.length > 0);
@@ -120,22 +150,19 @@ export function GlobalSearch() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAdmin, token]);
 
   useEffect(() => { runSearch(debouncedQuery); }, [debouncedQuery, runSearch]);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node))
         setOpen(false);
-      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Keyboard shortcut Ctrl+K / Cmd+K
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -157,7 +184,6 @@ export function GlobalSearch() {
   };
 
   const clear = () => { setQuery(''); setResults([]); setOpen(false); setFocused(-1); };
-
   const handleSelect = (r: Result) => { navigate(r.href); clear(); };
 
   return (
