@@ -12,20 +12,26 @@ interface CustomCheckboxProps {
 
 export const CustomCheckbox: React.FC<CustomCheckboxProps> = ({ id, checked, onChange, label, required = false }) => {
   return (
-    <div className="flex items-start">
-      <div className="flex items-center h-5">
+    <label htmlFor={id} className="flex items-start gap-3 cursor-pointer group">
+      <div className="relative flex-shrink-0 mt-0.5">
         <input
           id={id}
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
           required={required}
-          className="w-5 h-5 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 cursor-pointer"
+          className="sr-only peer"
         />
+        <div className={`w-5 h-5 rounded-md border-2 transition-all duration-150 flex items-center justify-center
+          ${checked ? "bg-orange-500 border-orange-500" : "bg-white border-gray-300 group-hover:border-orange-400"}`}>
+          {checked && (
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
       </div>
-      <label htmlFor={id} className="ml-3 text-sm font-medium text-gray-700 cursor-pointer">
-        {label}
-      </label>
-    </div>
+      <span className="text-sm text-gray-600 leading-5">{label}</span>
+    </label>
   )
 }

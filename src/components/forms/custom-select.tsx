@@ -1,140 +1,135 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState, useRef, useEffect } from "react";
+import type React from "react"
+import { useState, useRef, useEffect } from "react"
 
 interface SelectOption {
-  value: string;
-  label: string;
-  subtitle?: string;
-  flag?: string;
-  surcharge?: number;
+  value: string
+  label: string
+  subtitle?: string
+  flag?: string
+  surcharge?: number
 }
 
 interface CustomSelectProps {
-  value?: string; 
-  onChange: (value: string) => void;
-  placeholder: string;
-  options: SelectOption[];
-  icon?: React.ReactNode;
+  value?: string
+  onChange: (value: string) => void
+  placeholder: string
+  options: SelectOption[]
+  icon?: React.ReactNode
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
-  value,
-  onChange,
-  placeholder,
-  options,
-  icon,
+  value, onChange, placeholder, options, icon,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  // La búsqueda para mostrar la opción seleccionada no necesita cambios,
-  // ya que comparará el valor del estado (que tendrá el case correcto) con las opciones.
-  const selectedOption = options.find((opt) => opt.value === value);
-  const selectRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const [search, setSearch] = useState("")
+  const selectRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
 
-  // AÑADIDO: Hook mejorado para establecer el valor por defecto.
+  const selectedOption = options.find((opt) => opt.value === value)
+
+  // Default to Panama
   useEffect(() => {
-    // Solo proceder si no hay un valor y si ya tenemos opciones disponibles.
     if (!value && options.length > 0) {
-      // Búsqueda insensible a mayúsculas/minúsculas.
-      const panamaOption = options.find(
-        (opt) => opt.value.toLowerCase() === 'panama'
-      );
+      const panama = options.find(opt => opt.value.toLowerCase() === "panama")
+      if (panama) onChange(panama.value)
+    }
+  }, [value, options, onChange])
 
-      // Si se encuentra la opción de Panamá...
-      if (panamaOption) {
-        // ...se llama a onChange con su valor REAL (preservando mayúsculas/minúsculas).
-        // Esto es crucial para que `selectedOption` lo encuentre después.
-        onChange(panamaOption.value);
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+        setSearch("")
       }
     }
-    // Dependencias:
-    // - value: para no sobreescribir un valor ya existente.
-    // - options: para que el efecto se ejecute si las opciones cambian (ej. carga asíncrona).
-    // - onChange: es una dependencia porque se usa en el efecto (buena práctica de React).
-  }, [value, options, onChange]);
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
 
+  // Focus search when opens
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        selectRef.current &&
-        !selectRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+    if (isOpen) setTimeout(() => searchRef.current?.focus(), 50)
+  }, [isOpen])
+
+  const filtered = search.trim()
+    ? options.filter(o => o.label.toLowerCase().includes(search.toLowerCase()))
+    : options
 
   return (
     <div className="relative" ref={selectRef}>
       {icon && (
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10 pointer-events-none">
           {icon}
         </div>
       )}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full h-12 px-4 ${icon ? "pl-10" : ""} pr-10 bg-white border border-gray-200 rounded-xl 
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                   transition-all duration-200 text-left hover:border-gray-300
-                   ${selectedOption ? "text-gray-900" : "text-gray-400"}`}
+        onClick={() => setIsOpen(o => !o)}
+        className={`w-full h-14 px-4 ${icon ? "pl-11" : ""} pr-10 bg-white border border-gray-200 rounded-2xl
+          focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent
+          transition-all duration-200 text-left hover:border-gray-300 text-base
+          ${selectedOption ? "text-gray-900" : "text-gray-400"}`}
       >
-        <div className="flex items-center gap-2">
-          {selectedOption?.flag && (
-            <span className="text-lg">{selectedOption.flag}</span>
-          )}
-          {selectedOption ? selectedOption.label : placeholder}
+        <div className="flex items-center gap-2 truncate">
+          {selectedOption?.flag && <span className="text-lg flex-shrink-0">{selectedOption.flag}</span>}
+          <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
         </div>
       </button>
 
-      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-        <svg
-          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+        <svg className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-60 overflow-y-auto">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-150 first:rounded-t-xl last:rounded-b-xl"
-            >
-              <div className="flex items-center gap-2">
-                {option.flag && <span className="text-lg">{option.flag}</span>}
-                <div>
-                  <div className="text-gray-900">{option.label}</div>
-                  {option.subtitle && (
-                    <div className="text-sm text-gray-500 mt-1">
-                      {option.subtitle}
-                    </div>
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden">
+          {/* Search inside dropdown */}
+          {options.length > 8 && (
+            <div className="p-2 border-b border-gray-100">
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search..."
+                className="w-full h-10 px-3 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
+          )}
+          <div className="max-h-56 overflow-y-auto overscroll-contain">
+            {filtered.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-4">No results</p>
+            )}
+            {filtered.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => { onChange(option.value); setIsOpen(false); setSearch("") }}
+                className={`w-full px-4 py-3.5 text-left text-base transition-colors duration-100
+                  ${option.value === value ? "bg-orange-50 text-orange-700 font-medium" : "hover:bg-gray-50 text-gray-900"}`}
+              >
+                <div className="flex items-center gap-3">
+                  {option.flag && <span className="text-xl">{option.flag}</span>}
+                  <div>
+                    <div>{option.label}</div>
+                    {option.subtitle && <div className="text-xs text-gray-400 mt-0.5">{option.subtitle}</div>}
+                  </div>
+                  {option.value === value && (
+                    <svg className="ml-auto w-4 h-4 text-orange-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
                   )}
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}

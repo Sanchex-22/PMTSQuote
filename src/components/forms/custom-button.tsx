@@ -12,30 +12,17 @@ interface CustomButtonProps {
 }
 
 export const CustomButton: React.FC<CustomButtonProps> = ({
-  type = "button",
-  onClick,
-  disabled = false,
-  variant = "primary",
-  children,
-  className = "",
+  type = "button", onClick, disabled = false, variant = "primary", children, className = "",
 }) => {
-  const baseClasses =
-    "w-full h-12 px-6 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+  const base = "w-full h-14 px-6 rounded-2xl font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98]"
 
-  const variantClasses = {
-    primary: `bg-blue-600 text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 
-              disabled:bg-gray-300 disabled:cursor-not-allowed`,
-    secondary: `bg-gray-900 text-white hover:bg-gray-800 focus:ring-4 focus:ring-gray-200 
-                disabled:bg-gray-300 disabled:cursor-not-allowed`,
+  const variants = {
+    primary: "bg-orange-500 text-white hover:bg-orange-600 focus:ring-4 focus:ring-orange-200 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed shadow-sm hover:shadow-md",
+    secondary: "bg-gray-800 text-white hover:bg-gray-900 focus:ring-4 focus:ring-gray-200 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed",
   }
 
   return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
-    >
+    <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${variants[variant]} ${className}`}>
       {children}
     </button>
   )

@@ -13,17 +13,15 @@ interface CustomInputProps {
 }
 
 export const CustomInput: React.FC<CustomInputProps> = ({
-  id,
-  type = "text",
-  value,
-  onChange,
-  placeholder,
-  required = false,
-  icon,
+  id, type = "text", value, onChange, placeholder, required = false, icon,
 }) => {
   return (
-    <div className="relative" id="hidden-relative">
-      {icon && <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">{icon}</div>}
+    <div className="relative">
+      {icon && (
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          {icon}
+        </div>
+      )}
       <input
         id={id}
         type={type}
@@ -31,10 +29,11 @@ export const CustomInput: React.FC<CustomInputProps> = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required={required}
-        className={`w-full h-12 px-4 ${icon ? "pl-10" : ""} bg-white border border-gray-200 rounded-xl 
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                   transition-all duration-200 text-gray-900 placeholder-gray-400
-                   hover:border-gray-300`}
+        className={`w-full h-14 text-base bg-white border border-gray-200 rounded-2xl
+          px-4 ${icon ? "pl-11" : ""}
+          text-gray-900 placeholder-gray-400
+          focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent
+          hover:border-gray-300 transition-all duration-200`}
       />
     </div>
   )

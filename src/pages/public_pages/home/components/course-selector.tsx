@@ -124,7 +124,7 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={t("Search by name or abbreviation...")}
+                  placeholder={t("Search by name, abbreviation or IMO...")}
                   className="w-full h-10 px-4 pl-10 pr-10 bg-gray-50 border border-gray-200 rounded-lg
                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                            text-sm"

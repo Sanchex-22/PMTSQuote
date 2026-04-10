@@ -1,4 +1,9 @@
-import { Courses } from "../data/courses"
+interface PricedCourse {
+  price_panamanian?: number | null;
+  price_panamanian_renewal?: number | null;
+  price_foreign?: number | null;
+  price_foreign_renewal?: number | null;
+}
 
 
 // Gobiernos/países disponibles para selección
@@ -29,7 +34,7 @@ export const calculatePriceWithSurcharge = (basePrice: number, surchargeAmount: 
 }
 
 // Función para obtener precio base de curso nuevo
-export const getCourseBasePrice = (course: Courses, nationality: string): number => {
+export const getCourseBasePrice = (course: PricedCourse, nationality: string): number => {
   if (isPanamanian(nationality)) {
     return course.price_panamanian || 0
   } else {
@@ -38,7 +43,7 @@ export const getCourseBasePrice = (course: Courses, nationality: string): number
 }
 
 // Función para obtener precio base de renovación
-export const getRenewalBasePrice = (course: Courses, nationality: string): number => {
+export const getRenewalBasePrice = (course: PricedCourse, nationality: string): number => {
   if (isPanamanian(nationality)) {
     return (course.price_panamanian_renewal || 0) / 2
   } else {
@@ -47,14 +52,14 @@ export const getRenewalBasePrice = (course: Courses, nationality: string): numbe
 }
 
 // Función para calcular precio final de curso nuevo
-export const calculateCoursePrice = (course: Courses, nationality: string, government: string): number => {
+export const calculateCoursePrice = (course: PricedCourse, nationality: string, government: string): number => {
   const basePrice = getCourseBasePrice(course, nationality)
   const govInfo = getGovernmentInfo(government)
   return calculatePriceWithSurcharge(basePrice, govInfo.surcharge)
 }
 
 // Función para calcular precio final de renovación
-export const calculateRenewalPrice = (course: Courses, nationality: string, government: string): number => {
+export const calculateRenewalPrice = (course: PricedCourse, nationality: string, government: string): number => {
   const basePrice = getRenewalBasePrice(course, nationality)
   const govInfo = getGovernmentInfo(government)
   return calculatePriceWithSurcharge(basePrice, govInfo.surcharge)

@@ -44,6 +44,8 @@ const en = {
     "No additional surcharge": "Sin recargo adicional",
     "New Maritime Courses": "Cursos Marítimos Nuevos",
     "(Search by name or abbreviation)": "(Busca por nombre o abreviación)",
+    "(Search by name, abbreviation or IMO)": "(Busca por nombre, abreviación o IMO)",
+    "Search by name, abbreviation or IMO...": "Busca por nombre, abreviación o IMO...",
     "Course Renewal": "Renovación de Cursos",
     "(Only courses that allow renewal)": "(Solo cursos que permiten renovación)",
 
@@ -132,7 +134,45 @@ const en = {
     "Fecha, tipo de cirugía y estado actual (o N/A)" : "Fecha, tipo de cirugía y estado actual (o N/A)",
     "Vaccine type and dose (or N/A)": "Tipo de vacuna y dosis (o N/A)",
     "Upload Files": "Subir Archivos",
-    "I agree that these courses are 100% in-person":"Estoy de acuerdo que estos cursos son 100% presenciales"
+    "I agree that these courses are 100% in-person": "Estoy de acuerdo que estos cursos son 100% presenciales",
+
+    // Navbar
+    "Home": "Inicio",
+
+    // Home page
+    "Select the service you need and we'll guide you through the process.": "Selecciona el servicio que necesitas y te guiaremos en el proceso.",
+    "Request a quote for maritime courses": "Solicita una cotización para cursos marítimos",
+    "Maritime license documentation and renewal": "Documentación y renovación de licencias marítimas",
+    "Medical fitness certificate for seafarers": "Certificado de aptitud médica para marinos",
+    "Certificate of Competency – Liberian Registry": "Certificado de Competencia – Registro Liberiano",
+    "Instructor Evaluation": "Evaluación de Instructores",
+    "Evaluation form for maritime instructors": "Formulario de evaluación para instructores marítimos",
+    "Panama Maritime Training Solutions": "Panama Maritime Training Solutions",
+
+    // CourseQuote — inline validation messages
+    "Please select a government/institution": "Por favor, selecciona un gobierno/institución",
+    "Please select your nationality": "Por favor, selecciona tu nacionalidad",
+    "Please select at least one course": "Por favor, selecciona al menos un curso",
+    "Please verify you are not a robot": "Por favor, verifica que no eres un robot",
+    "You must accept the terms and conditions": "Debes aceptar los términos y condiciones",
+    "Failed to load courses.": "Error al cargar los cursos.",
+    "Select your nationality first to see available courses": "Selecciona tu nacionalidad primero para ver los cursos disponibles",
+    "Select a government/institution to see available courses": "Selecciona un gobierno/institución para ver los cursos disponibles",
+
+    // CourseQuote — terms checkbox
+    "Verification": "Verificación",
+    "I accept the": "Acepto los",
+    "terms and conditions": "términos y condiciones",
+    "and the": "y la",
+    "privacy policy": "política de privacidad",
+
+    // CourseQuote — confirmation screen (no colon variants)
+    "New Courses": "Cursos Nuevos",
+    "Renewals": "Renovaciones",
+    "Student Details": "Datos del Estudiante",
+    "Full name": "Nombre Completo",
+    "Document": "Documento",
+    "Government": "Gobierno",
   }
 };
 

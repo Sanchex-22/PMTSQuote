@@ -2,589 +2,360 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useTranslation, Trans } from "react-i18next"
+import { useTranslation } from "react-i18next"
 import { submitRegistration } from "../../../actions/actions"
 import Images from "../../../assets"
 import countryNationality from "../../../data/countries"
-
-// Importar la clase de servicio y la interfaz de Course
+import { PrivacyModal } from "../../../components/modals/PrivacyModal"
+import { TermsModal } from "../../../components/modals/TermsModal"
 import { Course, CourseServices } from "../../../services/courses"
-
-// Importar iconos
-import {
-  UserIcon,
-  DocumentIcon,
-  GlobeIcon,
-  MailIcon,
-  PhoneIcon,
-  LoadingSpinner,
-  BackIcon,
-  CheckIcon,
-} from "../../../components/icons/icons"
-
-import {
-  governments,
-  calculateCoursePrice,
-  calculateRenewalPrice,
-} from "../../../utils/pricing"
+import { UserIcon, DocumentIcon, GlobeIcon, MailIcon, PhoneIcon, LoadingSpinner, BackIcon, CheckIcon } from "../../../components/icons/icons"
+import { governments, calculateCoursePrice, calculateRenewalPrice } from "../../../utils/pricing"
 import { CourseSelector } from "./components/course-selector"
 import CourseRenewalSelector from "../../../components/buttons/course-renewal-selector"
 import { QuoteSummary } from "./components/quote-summary"
-
-// CAMBIO 1: Importamos el nuevo componente en lugar del antiguo
 import { SimpleCheckboxCaptcha } from "../../../components/forms/SimpleCheckboxCaptcha"
 import { CustomCheckbox } from "../../../components/forms/custom-checkbox"
 import { CustomButton } from "../../../components/forms/custom-button"
 import { CustomInput } from "../../../components/forms/customInput"
 import { CustomSelect } from "../../../components/forms/custom-select"
 
-
 interface RegistrationResult {
   courses: Course[]
   renewalCourses: Course[]
-  studentInfo: {
-    name: string
-    lastName: string
-    document: string
-    nationality: string
-    email: string
-    phone: string
-  }
-  totalCost: number
-  newCoursesTotal: number
-  renewalCoursesTotal: number
-  government: string
+  studentInfo: { name: string; lastName: string; document: string; nationality: string; email: string; phone: string }
+  totalCost: number; newCoursesTotal: number; renewalCoursesTotal: number; government: string
 }
 
-const countryOptions = countryNationality.map(([country]) => ({
-  label: country,
-  value: country,
-}))
+const countryOptions = countryNationality.map(([country]) => ({ label: country, value: country }))
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{children}</p>
+  )
+}
+
+function FieldError({ msg }: { msg?: string }) {
+  if (!msg) return null
+  return <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1"><span>⚠</span>{msg}</p>
+}
 
 export default function CourseQuote() {
   const { t } = useTranslation()
-
-  // NUEVOS ESTADOS PARA LOS CURSOS DE LA API
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiCourses, setApiCourses] = useState<Course[]>([])
   const [loadingCourses, setLoadingCourses] = useState(true)
   const [errorCourses, setErrorCourses] = useState<string | null>(null)
-
-  const [formData, setFormData] = useState({
-    name: "",
-    lastName: "",
-    document: "",
-    nationality: "",
-    email: "",
-    phone: "",
-    courses: [] as string[],
-    renewalCourses: [] as string[],
-    government: "",
-  })
+  const [formData, setFormData] = useState({ name: "", lastName: "", document: "", nationality: "", email: "", phone: "", courses: [] as string[], renewalCourses: [] as string[], government: "" })
   const [registration, setRegistration] = useState<RegistrationResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [captchaVerified, setCaptchaVerified] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [coursesTermsAccepted, setCoursesTermsAccepted] = useState(false)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
+  const [termsOpen, setTermsOpen] = useState(false)
 
-  // EFECTO PARA CARGAR LOS CURSOS DE LA API AL MONTAR EL COMPONENTE
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setLoadingCourses(true)
-        setErrorCourses(null)
-        const service = new CourseServices()
-        const data = await service.getAllCourses()
-        setApiCourses(data)
-      } catch (err: unknown) {
-        console.error("Error al cargar cursos:", err)
-        setErrorCourses(t("Failed to load courses. Please try again later.") + (err instanceof Error ? ` ${err.message}` : ''));
-      } finally {
-        setLoadingCourses(false)
-      }
-    }
-
-    fetchCourses()
-  }, []) // El array vacío asegura que se ejecute solo una vez al montar
+    new CourseServices().getAllCourses()
+      .then(setApiCourses)
+      .catch(() => setErrorCourses(t("Failed to load courses.")))
+      .finally(() => setLoadingCourses(false))
+  }, [])
 
   const handleInputChange = (field: string, value: string | string[]) => {
-    setFormData((prev) => {
-      const newData = {
-        ...prev,
-        [field]: value,
-        ...(field === "government" && { courses: [], renewalCourses: [] }),
-      }
-      if (field === "courses" && Array.isArray(value)) {
-        const conflictingRenewals = prev.renewalCourses.filter((renewalId) => !value.includes(renewalId))
-        newData.renewalCourses = conflictingRenewals
-      }
-      if (field === "renewalCourses" && Array.isArray(value)) {
-        const conflictingNew = prev.courses.filter((courseId) => !value.includes(courseId))
-        newData.courses = conflictingNew
-      }
-      return newData
+    setErrors(prev => { const n = { ...prev }; delete n[field]; return n })
+    setFormData(prev => {
+      const next = { ...prev, [field]: value, ...(field === "government" && { courses: [], renewalCourses: [] }) }
+      if (field === "courses" && Array.isArray(value)) next.renewalCourses = prev.renewalCourses.filter(id => !value.includes(id))
+      if (field === "renewalCourses" && Array.isArray(value)) next.courses = prev.courses.filter(id => !value.includes(id))
+      return next
     })
   }
-  
+
   const calculateCosts = () => {
-    const selectedNewCoursesData = apiCourses.filter((course) => formData.courses.includes(String(course.id)));
-    const selectedRenewalCoursesData = apiCourses.filter((course) => formData.renewalCourses.includes(String(course.id)));
-
-    const newCoursesTotal = selectedNewCoursesData.reduce(
-      (total, course) => total + calculateCoursePrice(course, formData.nationality, formData.government),
-      0,
-    );
-    const renewalCoursesTotal = selectedRenewalCoursesData.reduce(
-      (total, course) => total + calculateRenewalPrice(course, formData.nationality, formData.government),
-      0,
-    );
-    const totalCost = newCoursesTotal + renewalCoursesTotal;
-
-    return {
-      selectedNewCoursesData,
-      selectedRenewalCoursesData,
-      newCoursesTotal,
-      renewalCoursesTotal,
-      totalCost,
-    };
-  };
+    const nc = apiCourses.filter(c => formData.courses.includes(String(c.id)))
+    const rc = apiCourses.filter(c => formData.renewalCourses.includes(String(c.id)))
+    const nct = nc.reduce((s, c) => s + calculateCoursePrice(c, formData.nationality, formData.government), 0)
+    const rct = rc.reduce((s, c) => s + calculateRenewalPrice(c, formData.nationality, formData.government), 0)
+    return { selectedNewCoursesData: nc, selectedRenewalCoursesData: rc, newCoursesTotal: nct, renewalCoursesTotal: rct, totalCost: nct + rct }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (apiCourses.length === 0) {
-      alert(t("Courses data is not loaded yet. Please wait or refresh."))
-      return;
-    }
-
-    if (!formData.government) {
-      alert(t("Please select a government/institution."))
-      return
-    }
-    if (!formData.nationality) {
-      alert(t("Please select your nationality."))
-      return
-    }
-    if (formData.courses.length === 0 && formData.renewalCourses.length === 0) {
-      alert(t("Please select at least one new or renewal course."))
-      return
-    }
-    const conflicts = formData.courses.filter((courseId) => formData.renewalCourses.includes(courseId))
-    if (conflicts.length > 0) {
-      alert(t("Error: There are courses selected as both new and for renewal. Please review your selection."))
-      return
-    }
-    if (!captchaVerified) {
-      alert(t("Please verify you are not a robot before continuing.")) // Mensaje actualizado
-      return
-    }
-    if (!termsAccepted) {
-      alert(t("You must accept the terms and conditions to continue."))
-      return
-    }
-
+    const e2: Record<string, string> = {}
+    if (!formData.government) e2.government = t("Please select a government/institution")
+    if (!formData.nationality) e2.nationality = t("Please select your nationality")
+    if (formData.courses.length === 0 && formData.renewalCourses.length === 0) e2.courses = t("Please select at least one course")
+    if (!captchaVerified) e2.captcha = t("Please verify you are not a robot")
+    if (!termsAccepted) e2.terms = t("You must accept the terms and conditions")
+    if (Object.keys(e2).length > 0) { setErrors(e2); return }
     setIsLoading(true)
     try {
-      await submitRegistration(formData); 
-      const {
-        selectedNewCoursesData,
-        selectedRenewalCoursesData,
-        newCoursesTotal,
-        renewalCoursesTotal,
-        totalCost,
-      } = calculateCosts();
-
-      const selectedGov = governments.find((g) => g.value === formData.government)
-
-      const fixedResult: RegistrationResult = {
-        courses: selectedNewCoursesData,
-        renewalCourses: selectedRenewalCoursesData,
-        studentInfo: {
-          name: formData.name,
-          lastName: formData.lastName,
-          document: formData.document,
-          nationality: formData.nationality,
-          email: formData.email,
-          phone: formData.phone,
-        },
-        totalCost,
-        newCoursesTotal,
-        renewalCoursesTotal,
-        government: selectedGov?.label || formData.government,
-      }
-      setRegistration(fixedResult)
+      await submitRegistration(formData)
+      const { selectedNewCoursesData, selectedRenewalCoursesData, newCoursesTotal, renewalCoursesTotal, totalCost } = calculateCosts()
+      setRegistration({ courses: selectedNewCoursesData, renewalCourses: selectedRenewalCoursesData, studentInfo: { name: formData.name, lastName: formData.lastName, document: formData.document, nationality: formData.nationality, email: formData.email, phone: formData.phone }, totalCost, newCoursesTotal, renewalCoursesTotal, government: governments.find(g => g.value === formData.government)?.label || formData.government })
       setShowConfirmation(true)
     } catch (error) {
-      console.error("Error submitting registration:", error)
-      alert(error instanceof Error ? error.message : t("There was an error submitting your quote"))
+      setErrors({ submit: error instanceof Error ? error.message : t("There was an error submitting your quote") })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleBack = () => {
-    setShowConfirmation(false)
-    setRegistration(null)
+  const canSeeCoursePicker = formData.nationality && formData.government
+  const hasCoursesSelected = formData.courses.length > 0 || formData.renewalCourses.length > 0
+
+  // ── Confirmation ──
+  if (showConfirmation && registration) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-8 flex flex-col items-center">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-green-500 rounded-2xl mb-4 shadow-lg text-white">
+              <CheckIcon />
+            </div>
+            <h1 className="text-2xl font-semibold text-gray-900">{t("Quote Generated!")}</h1>
+            <p className="text-gray-500 text-sm mt-1">{t("Your quote has been generated successfully")}</p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-green-50 px-5 py-4 border-b border-green-100 text-center">
+              <p className="text-sm font-medium text-green-800">{t("Please check your email to see the full quote.")}</p>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {registration.courses.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t("New Courses")}</p>
+                  <div className="space-y-2">
+                    {registration.courses.map((c, i) => (
+                      <div key={i} className="flex items-center gap-3 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100">
+                        <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
+                        <span className="text-sm font-medium text-blue-900 flex-1 min-w-0 truncate">{c.name}</span>
+                        {c.abbr && <span className="text-xs font-mono text-blue-500 bg-white px-2 py-0.5 rounded-lg border border-blue-100 flex-shrink-0">{c.abbr}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {registration.renewalCourses.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t("Renewals")}</p>
+                  <div className="space-y-2">
+                    {registration.renewalCourses.map((c, i) => (
+                      <div key={i} className="flex items-center gap-3 px-4 py-3 bg-orange-50 rounded-xl border border-orange-100">
+                        <div className="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0" />
+                        <span className="text-sm font-medium text-orange-900 flex-1 min-w-0 truncate">{c.name}</span>
+                        {c.abbr && <span className="text-xs font-mono text-orange-500 bg-white px-2 py-0.5 rounded-lg border border-orange-100 flex-shrink-0">{c.abbr}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-gray-50 rounded-2xl p-4 space-y-2.5">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{t("Student Details")}</p>
+                {[
+                  [t("Full name"), `${registration.studentInfo.name} ${registration.studentInfo.lastName}`],
+                  [t("Document"), registration.studentInfo.document],
+                  [t("Nationality"), registration.studentInfo.nationality],
+                  [t("Email"), registration.studentInfo.email],
+                  [t("Phone"), registration.studentInfo.phone || "—"],
+                  [t("Government"), registration.government],
+                ].map(([label, val]) => (
+                  <div key={label} className="flex items-start justify-between gap-4 text-sm">
+                    <span className="text-gray-400 flex-shrink-0">{label}</span>
+                    <span className="font-medium text-gray-800 text-right break-all">{val}</span>
+                  </div>
+                ))}
+              </div>
+
+              <CustomButton onClick={() => { setShowConfirmation(false); setRegistration(null) }} variant="secondary">
+                <BackIcon /> {t("New Quote")}
+              </CustomButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
+  // ── Main form ──
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {!showConfirmation ? (
-          <>
-            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-              
-              <div className="p-8">
-              <div className="text-center mb-4">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
-                    <img src={Images.logo || "/placeholder.svg"} alt="logo" width={70} height={70} />
-                  </div>
-                  <h1 className="text-4xl font-light text-gray-900 mb-3">{t("Course Quote")}</h1>
-                  <p className="text-lg text-gray-600 max-w-md mx-auto">
-                    {t("Fill out the form to generate your quote")}
-                  </p>
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center px-0 sm:px-4 py-0 sm:py-8">
+      <div className="w-full max-w-lg">
+        <div className="bg-white sm:rounded-3xl sm:shadow-xl sm:border sm:border-gray-100 overflow-hidden min-h-screen sm:min-h-0">
+
+          {/* Header */}
+          <div className="px-5 pt-10 pb-6 text-center bg-gradient-to-b from-blue-50 to-white border-b border-gray-100">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-lg mb-4">
+              <img src={Images.logo || "/placeholder.svg"} alt="logo" width={48} height={48} />
+            </div>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-1">{t("Course Quote")}</h1>
+            <p className="text-sm text-gray-500">{t("Fill out the form to generate your quote")}</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="px-5 pt-6 pb-8 space-y-7">
+
+            {/* — Personal Info — */}
+            <section className="space-y-4">
+              <SectionLabel>{t("Personal Information")}</SectionLabel>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Name")} <span className="text-red-400">*</span></label>
+                  <CustomInput id="name" value={formData.name} onChange={v => handleInputChange("name", v)} placeholder={t("Your name")} required icon={<UserIcon />} />
                 </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* ... (resto de tus inputs de formulario sin cambios) ... */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                        {t("Name")}
-                      </label>
-                      <CustomInput
-                        id="name"
-                        value={formData.name}
-                        onChange={(value) => handleInputChange("name", value)}
-                        placeholder={t("Your name")}
-                        required
-                        icon={<UserIcon />}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                        {t("Last Name")}
-                      </label>
-                      <CustomInput
-                        id="lastName"
-                        value={formData.lastName}
-                        onChange={(value) => handleInputChange("lastName", value)}
-                        placeholder={t("Your last name")}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label htmlFor="document" className="block text-sm font-medium text-gray-700 mb-2">
-                        {t("ID or Passport")}
-                      </label>
-                      <CustomInput
-                        id="document"
-                        value={formData.document}
-                        onChange={(value) => handleInputChange("document", value)}
-                        placeholder={t("Document number")}
-                        required
-                        icon={<DocumentIcon />}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-2">
-                        {t("Nationality")} <span className="text-red-500">*</span>
-                      </label>
-                      <CustomSelect
-                        value={formData.nationality}
-                        onChange={(value) => handleInputChange("nationality", value)}
-                        placeholder={t("Select your nationality")}
-                        options={countryOptions}
-                        icon={<GlobeIcon />}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        {t("Email")}
-                      </label>
-                      <CustomInput
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(value) => handleInputChange("email", value)}
-                        placeholder={t("you@email.com")}
-                        icon={<MailIcon />}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                        {t("Phone")}
-                      </label>
-                      <CustomInput
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(value) => handleInputChange("phone", value)}
-                        placeholder={t("+1 (123) 456-7890")}
-                        icon={<PhoneIcon />}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="government" className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Government/Institution")} <span className="text-red-500">*</span>
-                    </label>
-                    <CustomSelect
-                      value={formData.government}
-                      onChange={(value) => handleInputChange("government", value)}
-                      placeholder={t("Select the government/institution")}
-                      options={governments}
-                      icon={<GlobeIcon />}
-                    />
-                  </div>
-                  {formData.nationality && formData.government && (
-                    <>
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {t("New Maritime Courses")}
-                          <span className="text-gray-500 font-normal ml-1">
-                            {t("(Search by name or abbreviation)")}
-                          </span>
-                        </label>
-                        <CourseSelector
-                          selectedCourses={formData.courses}
-                          onChange={(courses) => handleInputChange("courses", courses)}
-                          government={formData.government}
-                          nationality={formData.nationality}
-                          renewalCourses={formData.renewalCourses}
-                          availableCourses={apiCourses}
-                          loading={loadingCourses}
-                          error={errorCourses}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {t("Course Renewal")}
-                          <span className="text-gray-500 font-normal ml-1">
-                            {t("(Only courses that allow renewal)")}
-                          </span>
-                        </label>
-                          <CourseRenewalSelector
-                            selectedCourses={formData.renewalCourses}
-                            onChange={(courses) => handleInputChange("renewalCourses", courses)}
-                            government={formData.government}
-                            availableCourses={apiCourses}
-                            loading={loadingCourses}
-                            error={errorCourses}
-                          />
-                      </div>
-                    </>
-                  )}
-                  {formData.nationality &&
-                    formData.government &&
-                    (formData.courses.length > 0 || formData.renewalCourses.length > 0) && (
-                      <QuoteSummary
-                        selectedCourses={formData.courses}
-                        selectedRenewalCourses={formData.renewalCourses}
-                        government={formData.government}
-                        nationality={formData.nationality}
-                        availableCourses={apiCourses}
-                      />
-                    )}
-
-                  {/* CAMBIO 2: Reemplazamos el componente de CAPTCHA */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Security Verification")}
-                    </label>
-                    <SimpleCheckboxCaptcha
-                      verified={captchaVerified}
-                      onVerify={setCaptchaVerified}
-                    />
-                  </div>
-
-                  {/* Terms and Conditions */}
-                  <div className="space-y-2">
-                    <CustomCheckbox
-                      id="terms"
-                      checked={termsAccepted}
-                      onChange={setTermsAccepted}
-                      required
-                      label={
-                        <Trans i18nKey="I accept the <1>terms and conditions</1> and the <2>privacy policy</2>">
-                          I accept the{" "}
-                          <a href="#" className="text-blue-600 hover:underline">
-                            terms and conditions
-                          </a>{" "}
-                          and the{" "}
-                          <a href="#" className="text-blue-600 hover:underline">
-                            privacy policy
-                          </a>
-                        </Trans>
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <CustomCheckbox
-                      id="courses-terms"
-                      checked={coursesTermsAccepted}
-                      onChange={setCoursesTermsAccepted}
-                      required
-                      label={
-                        <Trans i18nKey="I agree that these courses are 100% in-person">
-                          {t("I agree that these courses are 100% in-person")}
-                        </Trans>
-                      }
-                    />
-                  </div>
-
-                  {/* Submit Button */}
-                  <div className="pt-4">
-                    <CustomButton
-                      type="submit"
-                      disabled={
-                        isLoading ||
-                        !captchaVerified ||
-                        !termsAccepted ||
-                        (formData.courses.length === 0 && formData.renewalCourses.length === 0) ||
-                        !formData.nationality ||
-                        !formData.government ||
-                        apiCourses.length === 0
-                      }
-                      variant="primary"
-                    >
-                      {isLoading ? (
-                        <>
-                          <LoadingSpinner />
-                          {t("Generating quote...")}
-                        </>
-                      ) : (
-                        t("Generate Quote")
-                      )}
-                    </CustomButton>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-6 shadow-lg text-white">
-                <CheckIcon />
-              </div>
-              <h1 className="text-4xl font-light text-gray-900 mb-3">{t("Quote Generated!")}</h1>
-              <p className="text-lg text-gray-600 max-w-md mx-auto">
-                {t("Your quote has been generated successfully")}
-              </p>
-            </div>
-            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="p-4">
-                <div className="mb-4">
-                  <h2 className="text-2xl font-light text-green-700 mb-2">{t("Quote Confirmed")}</h2>
-                  <p className="text-gray-600">{t("Summary of your maritime course quote")}</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Last Name")} <span className="text-red-400">*</span></label>
+                  <CustomInput id="lastName" value={formData.lastName} onChange={v => handleInputChange("lastName", v)} placeholder={t("Your last name")} required />
                 </div>
-                {registration && (
-                  <>                    <div className="bg-blue-50 border border-blue-200 text-center p-4 rounded-2xl mb-6">
-                      <p className="font-semibold text-blue-800">
-                        {t("Please check your email to see the full quote.")}
-                      </p>
-                    </div>
-                    <div className="space-y-4 mb-6">
-                      {registration.courses.length > 0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("New Courses:")}</h3>
-                          <div className="space-y-3">
-                            {registration.courses.map((course, index) => (
-                              <div
-                                key={index}
-                                className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100"
-                              >
-                                <h4 className="text-lg font-semibold text-blue-900 mb-2">{course.name}</h4>
-                                <div className="flex items-center gap-4 text-blue-700 text-sm">
-                                  {course.abbr && (
-                                    <span className="font-mono bg-white px-3 py-1 rounded-lg border">
-                                      {t("Code: {{abbr}}", { abbr: course.abbr })}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {registration.renewalCourses.length > 0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("Renewals:")}</h3>
-                          <div className="space-y-3">
-                            {registration.renewalCourses.map((course, index) => (
-                              <div
-                                key={index}
-                                className="bg-gradient-to-r from-orange-50 to-amber-50 p-6 rounded-2xl border border-orange-100"
-                              >
-                                <h4 className="text-lg font-semibold text-orange-900 mb-2">
-                                  {course.name} <span className="text-sm text-orange-600">{t("(Renewal)")}</span>
-                                </h4>
-                                <div className="flex items-center gap-4 text-orange-700 text-sm">
-                                  {course.abbr && (
-                                    <span className="font-mono bg-white px-3 py-1 rounded-lg border">
-                                      {t("Code: {{abbr}}", { abbr: course.abbr })}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    {/* --- FIN LISTA DE CURSOS --- */}
-
-                    <div className="bg-gray-50 p-6 rounded-2xl mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-4">{t("Student Details:")}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div>
-                          <span className="font-medium text-gray-900">{t("Full name:")}</span>
-                          <p>
-                            {registration.studentInfo.name} {registration.studentInfo.lastName}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{t("Document:")}</span>
-                          <p>{registration.studentInfo.document}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{t("Nationality:")}</span>
-                          <p>{registration.studentInfo.nationality}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{t("Email:")}</span>
-                          <p>{registration.studentInfo.email}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{t("Phone:")}</span>
-                          <p>{registration.studentInfo.phone}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{t("Government/Institution:")}</span>
-                          <p>{registration.government}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <CustomButton onClick={handleBack} variant="primary" className="bg-gray-600 hover:bg-gray-700">
-                        <BackIcon />
-                        {t("New Quote")}
-                      </CustomButton>
-                    </div>
-                  </>
-                )}
               </div>
-            </div>
-          </>
-        )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("ID or Passport")} <span className="text-red-400">*</span></label>
+                <CustomInput id="document" value={formData.document} onChange={v => handleInputChange("document", v)} placeholder={t("Document number")} required icon={<DocumentIcon />} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Nationality")} <span className="text-red-400">*</span></label>
+                <CustomSelect value={formData.nationality} onChange={v => handleInputChange("nationality", v)} placeholder={t("Select your nationality")} options={countryOptions} icon={<GlobeIcon />} />
+                <FieldError msg={errors.nationality} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Email")} <span className="text-red-400">*</span></label>
+                  <CustomInput id="email" type="email" value={formData.email} onChange={v => handleInputChange("email", v)} placeholder="you@email.com" icon={<MailIcon />} required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Phone")}</label>
+                  <CustomInput id="phone" type="tel" value={formData.phone} onChange={v => handleInputChange("phone", v)} placeholder="+1 (123) 456-7890" icon={<PhoneIcon />} />
+                </div>
+              </div>
+            </section>
+
+            <div className="h-px bg-gray-100" />
+
+            {/* — Course Selection — */}
+            <section className="space-y-4">
+              <SectionLabel>{t("Course Selection")}</SectionLabel>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Government/Institution")} <span className="text-red-400">*</span></label>
+                <CustomSelect value={formData.government} onChange={v => handleInputChange("government", v)} placeholder={t("Select the government/institution")} options={governments} icon={<GlobeIcon />} />
+                <FieldError msg={errors.government} />
+              </div>
+
+              {canSeeCoursePicker ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      {t("New Maritime Courses")}
+                      <span className="text-gray-400 font-normal text-xs ml-1">{t("(Search by name, abbreviation or IMO)")}</span>
+                    </label>
+                    <CourseSelector
+                      selectedCourses={formData.courses}
+                      onChange={c => handleInputChange("courses", c)}
+                      government={formData.government}
+                      nationality={formData.nationality}
+                      renewalCourses={formData.renewalCourses}
+                      availableCourses={apiCourses}
+                      loading={loadingCourses}
+                      error={errorCourses}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      {t("Course Renewal")}
+                      <span className="text-gray-400 font-normal text-xs ml-1">{t("(Only courses that allow renewal)")}</span>
+                    </label>
+                    <CourseRenewalSelector
+                      selectedCourses={formData.renewalCourses}
+                      onChange={c => handleInputChange("renewalCourses", c)}
+                      government={formData.government}
+                      availableCourses={apiCourses}
+                      loading={loadingCourses}
+                      error={errorCourses}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-sm text-gray-400">
+                  <span className="text-xl">📋</span>
+                  {!formData.nationality
+                    ? t("Select your nationality first to see available courses")
+                    : t("Select a government/institution to see available courses")}
+                </div>
+              )}
+
+              <FieldError msg={errors.courses} />
+
+              {canSeeCoursePicker && hasCoursesSelected && (
+                <QuoteSummary
+                  selectedCourses={formData.courses}
+                  selectedRenewalCourses={formData.renewalCourses}
+                  government={formData.government}
+                  nationality={formData.nationality}
+                  availableCourses={apiCourses}
+                />
+              )}
+            </section>
+
+            <div className="h-px bg-gray-100" />
+
+            {/* — Verification & Terms — */}
+            <section className="space-y-4">
+              <SectionLabel>{t("Verification")}</SectionLabel>
+
+              <div>
+                <SimpleCheckboxCaptcha verified={captchaVerified} onVerify={setCaptchaVerified} />
+                <FieldError msg={errors.captcha} />
+              </div>
+
+              <div className="space-y-3.5">
+                <CustomCheckbox id="terms" checked={termsAccepted}
+                  onChange={v => { setTermsAccepted(v); setErrors(p => { const n = { ...p }; delete n.terms; return n }) }}
+                  required
+                  label={
+                    <span>
+                      {t("I accept the")}{" "}
+                      <button type="button" onClick={() => setTermsOpen(true)} className="text-orange-500 hover:text-orange-700 underline font-medium">{t("terms and conditions")}</button>
+                      {" "}{t("and the")}{" "}
+                      <button type="button" onClick={() => setPrivacyOpen(true)} className="text-orange-500 hover:text-orange-700 underline font-medium">{t("privacy policy")}</button>
+                    </span>
+                  }
+                />
+                <FieldError msg={errors.terms} />
+
+                <CustomCheckbox id="courses-terms" checked={coursesTermsAccepted} onChange={setCoursesTermsAccepted} required
+                  label={t("I agree that these courses are 100% in-person")}
+                />
+              </div>
+            </section>
+
+            {errors.submit && (
+              <div className="flex items-start gap-2 p-4 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-600">
+                <span className="flex-shrink-0 mt-0.5">⚠</span> {errors.submit}
+              </div>
+            )}
+
+            <CustomButton
+              type="submit"
+              disabled={isLoading || !captchaVerified || !termsAccepted || !coursesTermsAccepted || !hasCoursesSelected || !formData.nationality || !formData.government || apiCourses.length === 0}
+              variant="primary"
+            >
+              {isLoading ? <><LoadingSpinner />{t("Generating quote...")}</> : t("Generate Quote")}
+            </CustomButton>
+
+          </form>
+        </div>
       </div>
+
+      <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <TermsModal open={termsOpen} onClose={() => setTermsOpen(false)} />
     </div>
   )
 }
