@@ -258,7 +258,7 @@ export default function UsersAdmin() {
         <UserForm onSubmit={handleCreate} onCancel={() => setShowCreate(false)} />
       </Modal>}
       {editUser && <Modal title="Editar usuario" onClose={() => setEditUser(null)}>
-        <UserForm initial={editUser} onSubmit={handleUpdate} onCancel={() => setEditUser(null)} isEdit />
+        <UserForm initial={{ ...editUser, name: editUser.name ?? undefined }} onSubmit={handleUpdate} onCancel={() => setEditUser(null)} isEdit />
       </Modal>}
       {deleteUser && <Modal title="Eliminar usuario" onClose={() => setDeleteUser(null)}>
         <p className="text-sm text-gray-600 mb-5">

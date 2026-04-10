@@ -156,7 +156,6 @@ const es = {
     "Document": "Document",
     "Government": "Government",
     "New Quote": "New Quote",
-    "Courses": "Courses",
     "License Procedure": "License Procedure",
     "Physical Examination": "Physical Examination",
     "Liberia COC": "Liberia COC",

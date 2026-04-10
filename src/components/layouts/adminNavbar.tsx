@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { getMainRoutesForRole, getUserRoles } from "../../routes/routesConfig";
 import { UserProfile } from "../../context/userProfileContext";
 import Images from "../../assets";
@@ -60,7 +60,7 @@ function SidebarLink({ href, label, icon, onClick }: {
   );
 }
 
-const AdminNavbar: React.FC<AdminNavbarProps> = ({ currentPathname, profile }) => {
+const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
   const { logout } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
