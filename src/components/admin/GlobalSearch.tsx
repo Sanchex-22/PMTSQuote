@@ -69,7 +69,7 @@ export function GlobalSearch() {
   const isAdmin = role === 'admin' || role === 'super_admin';
 
   const token = getJwtToken(jwt);
-  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
   const runSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); setOpen(false); return; }
