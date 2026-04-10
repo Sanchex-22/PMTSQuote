@@ -38,7 +38,6 @@ export class CourseServices { // Renombrado a CourseServices por convención
       }
 
       const data: Course[] = await response.json(); // Parsea la respuesta como JSON
-      console.log("Cursos obtenidos de la API (fetch):", data);
       return data;
     } catch (error: unknown) {
       console.error("Error al obtener los cursos de la API:", error);
