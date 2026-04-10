@@ -1,56 +1,34 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import useSWR from 'swr'; // 👈 1. Importar el hook useSWR
-const { VITE_API_URL } = import.meta.env
+import useSWR from 'swr';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface CourseInfo {
-  id: number;
-  name: string;
-  abbr: string | null;
-  imo_no: string | null;
-}
+const { VITE_API_URL } = import.meta.env;
 
-interface QuoteCourse {
-  id: number;
-  type: string;
-  basePrice: number;
-  surcharge: number;
-  course: CourseInfo;
-}
-
-interface UserInfo {
-  id: number;
-  name: string | null;
-  email: string;
-}
-
+interface CourseInfo { id: number; name: string; abbr: string | null; imo_no: string | null; }
+interface QuoteCourse { id: number; type: string; basePrice: number; surcharge: number; course: CourseInfo; }
+interface UserInfo { id: number; name: string | null; email: string; }
 interface Quote {
-  id: number;
-  createdAt: string;
-  quotedPrice: number;
+  id: number; createdAt: string; quotedPrice: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
-  user: UserInfo;
-  courses: QuoteCourse[];
+  user: UserInfo; courses: QuoteCourse[];
+}
+interface PaginatedResponse {
+  data: Quote[];
+  pagination: { total: number; page: number; limit: number; totalPages: number };
 }
 
-// --- FUNCIONES AYUDANTES (Sin cambios) ---
-const formatQuoteId = (id: number): string => `PMTS/Q/${id.toString().padStart(4, '0')}`;
-const formatDate = (isoDate: string): string => new Date(isoDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-const generateDescription = (courses: QuoteCourse[]): string => {
-  if (!courses || courses.length === 0) return 'Sin cursos';
-  const courseNames = courses.map(qc => qc.course.name);
-  let description = courseNames.slice(0, 2).join(', ');
-  if (courseNames.length > 2) description += '...';
-  return description;
+const formatQuoteId = (id: number) => `PMTS/Q/${id.toString().padStart(4, '0')}`;
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const generateDescription = (courses: QuoteCourse[]) => {
+  if (!courses?.length) return 'Sin cursos';
+  const names = courses.map(qc => qc.course.name);
+  return names.slice(0, 2).join(', ') + (names.length > 2 ? '...' : '');
 };
-const formatCurrency = (amount: number): string => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-const translateStatus = (status: Quote['status']): string => ({
-  PENDING: 'Pendiente',
-  APPROVED: 'Aprobada',
-  REJECTED: 'Rechazada',
-  EXPIRED: 'Expirada',
-}[status] || 'Desconocido');
-const getStatusClass = (status: Quote['status']): string => {
-  switch (status) {
+const formatCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+const translateStatus = (s: Quote['status']) => ({ PENDING: 'Pendiente', APPROVED: 'Aprobada', REJECTED: 'Rechazada', EXPIRED: 'Expirada' }[s] || 'Desconocido');
+const getStatusClass = (s: Quote['status']) => {
+  switch (s) {
     case 'APPROVED': return 'bg-green-100 text-green-800';
     case 'PENDING': return 'bg-yellow-100 text-yellow-800';
     case 'REJECTED': case 'EXPIRED': return 'bg-red-100 text-red-800';
@@ -58,57 +36,47 @@ const getStatusClass = (status: Quote['status']): string => {
   }
 };
 
-// 👈 2. Definir una función "fetcher" global o local.
-// SWR la usará para obtener los datos. Solo necesita recibir la URL.
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const LIMIT = 10;
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-// --- EL COMPONENTE ACTUALIZADO ---
 export function QuotesSection() {
-  const {
-    data: quotes,
-    error,
-    isLoading
-  } = useSWR<Quote[]>(`${VITE_API_URL}/api/quotations/all/getAll`, fetcher);
+  const [page, setPage] = useState(1);
 
-  // El manejo de estados de carga y error es más limpio
+  const { data, error, isLoading } = useSWR<PaginatedResponse | Quote[]>(
+    `${VITE_API_URL}/api/quotations/all/getAll?page=${page}&limit=${LIMIT}`,
+    fetcher
+  );
+
+  // Soporta tanto el formato paginado { data, pagination } como el array directo (backend viejo)
+  const quotes: Quote[] = Array.isArray(data) ? data : (data?.data || []);
+  const pagination = Array.isArray(data) ? null : data?.pagination;
+
   if (error) return <p className="text-center p-8 text-red-600">Error al cargar los datos.</p>;
   if (isLoading) return <p className="text-center p-8">Cargando cotizaciones...</p>;
 
   return (
-    <div className="">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
-        Historial de Cotizaciones
-      </h2>
+    <div>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Historial de Cotizaciones</h2>
       <div className="overflow-x-auto bg-white border border-gray-200 rounded-lg">
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              {/* 👇 4. Añadir la nueva columna "Solicitante" */}
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitante</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-              <th scope="col" className="relative px-6 py-3">
-                <span className="sr-only">Acciones</span>
-              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Solicitante</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+              <th className="px-6 py-3 relative"><span className="sr-only">Acciones</span></th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {/* Si no hay cotizaciones, mostramos un mensaje amigable */}
-            {(!quotes || quotes.length === 0) && (
-              <tr>
-                <td colSpan={7} className="text-center py-8 text-gray-500">
-                  No se encontraron cotizaciones.
-                </td>
-              </tr>
+            {quotes.length === 0 && (
+              <tr><td colSpan={7} className="text-center py-8 text-gray-500">No se encontraron cotizaciones.</td></tr>
             )}
-            {/* Mapeamos los datos que nos devuelve SWR */}
-            {quotes && quotes.map((quote) => (
+            {quotes.map(quote => (
               <tr key={quote.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{formatQuoteId(quote.id)}</td>
-                {/* 👇 5. Mostrar el nombre del solicitante. Si no tiene nombre, muestra el email. */}
                 <td className="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">{quote.user.name || quote.user.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-gray-600">{generateDescription(quote.courses)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-gray-500">{formatDate(quote.createdAt)}</td>
@@ -119,15 +87,47 @@ export function QuotesSection() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <Link to={`/account/quotes/${quote.id}`} className="text-orange-600 hover:text-orange-900">
-                    Ver
-                  </Link>
+                  <Link to={`/account/quotes/${quote.id}`} className="text-orange-600 hover:text-orange-900">Ver</Link>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Paginación */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-gray-500">
+            Mostrando {(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, pagination.total)} de {pagination.total} cotizaciones
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="p-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(p => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-3 py-1 rounded border text-sm ${p === page ? 'bg-orange-500 text-white border-orange-500' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+              disabled={page === pagination.totalPages}
+              className="p-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

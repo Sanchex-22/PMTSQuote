@@ -16,6 +16,24 @@ interface AdminNavbarProps {
   profile: UserProfile | null;
 }
 
+function NavLink({ href, label }: { href: string; label: string }) {
+  const isActive = window.location.pathname.startsWith(href);
+  return (
+    <a
+      href={href}
+      className={`hidden md:flex items-center h-full px-1 text-sm font-bold uppercase tracking-wider select-none relative
+        transition-colors duration-200
+        after:absolute after:bottom-0 after:left-0 after:h-0.5 after:transition-all after:duration-300
+        ${isActive
+          ? 'text-orange-600 after:w-full after:bg-orange-500'
+          : 'text-gray-700 hover:text-orange-600 after:w-0 hover:after:w-full after:bg-orange-400'
+        }`}
+    >
+      {label}
+    </a>
+  );
+}
+
 const AdminNavbar: React.FC<AdminNavbarProps> = ({
   currentPathname,
   profile,
@@ -116,14 +134,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           </div>
           {filteredNavLinks.length > 0 ? (
             filteredNavLinks.map((link, index) => (
-              <div key={index}>
-                <a
-                  href={link.href}
-                  className="hidden md:block hover:text-yellow-700 text-sm font-bold h-full duration-500 select-none uppercase tracking-wider"
-                >
-                  {link.name}
-                </a>
-              </div>
+              <NavLink key={index} href={link.href} label={link.name} />
             ))
           ) : (
             <span className="text-lg text-gray-500">
@@ -195,12 +206,12 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
                   {link.icon}
                   <a
                     href={link.href}
-                    className="hidden md:block hover:text-yellow-700 text-sm font-bold h-full duration-500 select-none uppercase tracking-wider"
+                    className="hover:text-yellow-700 text-sm font-bold duration-500 select-none uppercase tracking-wider"
+                    onClick={closeMenu}
                   >
                     {link.name}
                   </a>
                 </div>
-
               ))
             ) : (
               <span className="text-lg text-gray-500">

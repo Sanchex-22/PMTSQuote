@@ -105,45 +105,40 @@ static async logout(jwt: string) {
     return await response.json();
   }
 
-  static async sendResetEmail(formData: FormData) {
-    const email = formData.get('email');
-    const password = formData.get('newPassword');
-
-    const response = await fetch(VITE_API_URL + "/api/user/auth/sendResetEmail", {
+  static async forgotPassword(email: string): Promise<void> {
+    const response = await fetch(VITE_API_URL + '/api/user/auth/forgot-password', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
     });
-    
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Error al enviar el email de reseteo');
+      throw new Error(errorData.message || 'Error al enviar el correo de recuperación');
     }
+  }
 
-    return await response.json();
+  static async resetPassword(token: string, newPassword: string): Promise<void> {
+    const response = await fetch(VITE_API_URL + '/api/user/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error al restablecer la contraseña');
+    }
+  }
+
+  // Métodos legacy mantenidos por compatibilidad
+  static async sendResetEmail(formData: FormData) {
+    const email = formData.get('email');
+    return this.forgotPassword(email as string);
   }
 
   static async sendReset(formData: FormData) {
-    const email = formData.get('email');
-    const newPassword = formData.get('newPassword');
-    const code = formData.get('code');
-
-    const response = await fetch(VITE_API_URL + "/api/user/auth/sendResetPassword", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, code, newPassword }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error al resetear la contraseña');
-    }
-
-    return await response.json();
+    const newPassword = formData.get('newPassword') as string;
+    const code = formData.get('code') as string;
+    return this.resetPassword(code, newPassword);
   }
 
   static isTokenExpired(exp: number): boolean {
