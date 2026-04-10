@@ -261,7 +261,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
           <ProtectedRoute
             isLogged={isLogged}
             auth={user}
-            allowedRoles={[authRoles.admin, authRoles.moderator, authRoles.super_admin]}
+            allowedRoles={[authRoles.admin, authRoles.super_admin]}
           >
             <EnvolveLayout
               title="Usuarios"

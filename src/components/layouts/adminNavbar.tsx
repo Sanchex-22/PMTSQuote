@@ -1,242 +1,168 @@
-import { useEffect, useState } from "react";
+import { useState, useContext } from "react";
 import { getMainRoutesForRole, getUserRoles } from "../../routes/routesConfig";
 import { UserProfile } from "../../context/userProfileContext";
 import Images from "../../assets";
-import { LogOut, Menu, User, X } from "lucide-react";
-import LanguageSwitcher from "../buttons/languageSwitcher";
+import {
+  LogOut, Menu, X, Users, BookOpen, UserCheck, FileText,
+  ChevronRight, LayoutDashboard
+} from "lucide-react";
 import useUser from "../../hook/useUser";
 
-interface CurrentPathname {
-  name: string;
-}
-
+interface CurrentPathname { name: string; }
 interface AdminNavbarProps {
   currentPathname: CurrentPathname;
   isLogged: boolean;
   profile: UserProfile | null;
 }
 
-function NavLink({ href, label }: { href: string; label: string }) {
+// Mapa de iconos por nombre de ruta
+const routeIcons: Record<string, React.ReactNode> = {
+  account:  <FileText className="h-4 w-4" />,
+  users:    <Users className="h-4 w-4" />,
+  courses:  <BookOpen className="h-4 w-4" />,
+  clients:  <UserCheck className="h-4 w-4" />,
+};
+
+const roleLabels: Record<string, string> = {
+  admin: 'Administrador',
+  super_admin: 'Super Admin',
+  moderator: 'Moderador',
+  user: 'Usuario',
+};
+
+const roleColors: Record<string, string> = {
+  admin: 'bg-purple-100 text-purple-700',
+  super_admin: 'bg-red-100 text-red-700',
+  moderator: 'bg-blue-100 text-blue-700',
+  user: 'bg-gray-100 text-gray-600',
+};
+
+function SidebarLink({ href, label, icon, onClick }: {
+  href: string; label: string; icon?: React.ReactNode; onClick?: () => void;
+}) {
   const isActive = window.location.pathname.startsWith(href);
   return (
     <a
       href={href}
-      className={`hidden md:flex items-center h-full px-1 text-sm font-bold uppercase tracking-wider select-none relative
-        transition-colors duration-200
-        after:absolute after:bottom-0 after:left-0 after:h-0.5 after:transition-all after:duration-300
+      onClick={onClick}
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group
         ${isActive
-          ? 'text-orange-600 after:w-full after:bg-orange-500'
-          : 'text-gray-700 hover:text-orange-600 after:w-0 hover:after:w-full after:bg-orange-400'
+          ? 'bg-orange-50 text-orange-600 border border-orange-100'
+          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
         }`}
     >
-      {label}
+      <span className={`flex-shrink-0 ${isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-600'}`}>
+        {icon || <LayoutDashboard className="h-4 w-4" />}
+      </span>
+      <span className="flex-1 capitalize">{label}</span>
+      {isActive && <ChevronRight className="h-3 w-3 text-orange-400" />}
     </a>
   );
 }
 
-const AdminNavbar: React.FC<AdminNavbarProps> = ({
-  currentPathname,
-  profile,
-}) => {
+const AdminNavbar: React.FC<AdminNavbarProps> = ({ currentPathname, profile }) => {
   const { logout } = useUser();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
-  const filteredNavLinks: { href: string; name: string; icon?: React.ReactNode }[] =
-    userRoles.flatMap((role: string) =>
-      getMainRoutesForRole(
-        role as "user" | "super_admin" | "admin" | "moderator"
-      ).map((route: any) => ({
-        href: typeof route === "string" ? route : route.href,
-        name: typeof route === "string" ? route : route.name,
-        icon: typeof route === "string"
-          ? undefined
-          : route.icon
-            ? <route.icon />
-            : undefined,
-      }))
-    ) || [];
-  useEffect(() => {
-    const navbar = document.getElementById("navbar");
+  const navLinks = userRoles.flatMap((role: string) =>
+    getMainRoutesForRole(role as any).map((route: any) => ({
+      href: typeof route === "string" ? route : route.href,
+      name: typeof route === "string" ? route : route.name,
+    }))
+  );
 
-    const handleScroll = () => {
-      if (window.scrollY > 0) {
-        navbar?.classList.add("scrolled");
-      } else {
-        navbar?.classList.remove("scrolled");
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
+  const initials = profile?.username
+    ? profile.username.slice(0, 2).toUpperCase()
+    : 'US';
+  const role = profile?.roles || 'user';
 
-    const openButton = document?.getElementById("open-menu");
-    const side = document?.getElementById("sidebar");
-    const hiddenrelative = document?.getElementById("hidden-relative");
-
-    if (!openButton) return;
-    const openMenu = () => {
-      document.body.classList.add("overflow-hidden");
-      side?.classList.remove("invisible", "translate-x-full", "hidden");
-      hiddenrelative?.classList.remove("relative");
-    };
-    openButton.addEventListener("click", openMenu);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      openButton.removeEventListener("click", openMenu);
-    };
-  }, []);
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden"; // Bloquea el scroll del body
-    } else {
-      document.body.style.overflow = ""; // Restaura el scroll del body
-    }
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsMenuOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.body.style.overflow = ""; // Limpieza al desmontar
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isMenuOpen]); // Se ejecuta cada vez que isMenuOpen cambia
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
-  return (
-    <nav
-      id="navbar"
-      className={`w-full flex justify-center h-12 md:h-16 z-20 mb-2 ${
-        currentPathname.name === "/"
-          ? ""
-          : "bg-gradient-to-r from-white via-white/80 to-white/90 border-b-2 border-black/20"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto main-content w-full px-6 md:px-5 flex justify-between h-12 md:h-16 items-center *:text-black">
-        <div className="flex *:px-4 items-center h-full">
-          <div className="flex items-center space-x-2">
-            <img
-              src={Images?.pmts || "#"}
-              alt="logo"
-              width={50}
-              height={50}
-              className="p-1"
-            />
-          </div>
-          {filteredNavLinks.length > 0 ? (
-            filteredNavLinks.map((link, index) => (
-              <NavLink key={index} href={link.href} label={link.name} />
-            ))
-          ) : (
-            <span className="text-lg text-gray-500">
-              No tienes acceso a ninguna ruta
-            </span>
-          )}
-        </div>
-
-        <div className=" md:flex justify-center">
-          <LanguageSwitcher className={"hidden"} />
-          <div className=" flex items-center">
-            <button
-              onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-              aria-expanded={isMenuOpen ? "true" : "false"}
-            >
-              <span className="sr-only">
-                {isMenuOpen ? "Cerrar menú principal" : "Abrir menú principal"}
-              </span>
-              {isMenuOpen ? (
-                <X className="block h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="block h-6 w-6" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        </div>
-        {/* slide bar */}
-        <div
-          className={`fixed inset-0 h-screen bg-black/50 z-40 transition-opacity duration-300 ${
-            isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
-          onClick={closeMenu}
-          aria-hidden={!isMenuOpen}
-        ></div>
-        <div
-          className={`fixed top-0 right-0 h-screen w-full bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out md:w-1/4
-          ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menú principal"
-        >
-          <div className="flex justify-between p-4">
-            <div className="flex items-center space-x-2">
-              <img
-                src={Images?.pmts || "#"}
-                alt="logo"
-                width={50}
-                height={50}
-                className="border-r-2 pr-2"
-              />
-              <span className="text-yellow-700 font-bold tracking-wider">
-                PMTS
-              </span>
-            </div>
-            <button
-              onClick={closeMenu}
-              className="text-gray-700 hover:text-gray-900 p-2 rounded-md hover:bg-gray-100"
-              aria-label="Cerrar menú"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          <div className="px-4 pb-3 space-y-1">
-
-            {filteredNavLinks.length > 0 ? (
-              filteredNavLinks.map((link, index) => (
-                <div key={index} className="px-2 py-2 space-x-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center cursor-pointer">
-                  {link.icon}
-                  <a
-                    href={link.href}
-                    className="hover:text-yellow-700 text-sm font-bold duration-500 select-none uppercase tracking-wider"
-                    onClick={closeMenu}
-                  >
-                    {link.name}
-                  </a>
-                </div>
-              ))
-            ) : (
-              <span className="text-lg text-gray-500">
-                No tienes acceso a ninguna ruta
-              </span>
-            )}
-            <hr/>
-            <div className="px-2 py-2 space-x-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center cursor-pointer">
-              <User className="h-4 w-4 text-gray-600" />
-              <span className="font-sm text-sm">{profile?.username || 'user'}</span>
-            </div>
-            
-            <button className="w-full px-2 py-2 space-x-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-              onClick={() => { logout()}}>
-              <LogOut className="h-4 w-4" />
-              <span>Cerrar sesión</span>
-            </button>
-
-            <div className="block px-0 py-2">
-              <LanguageSwitcher />
-            </div>
-          </div>
+  const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-100">
+        <img src={Images?.pmts || "#"} alt="PMTS" width={36} height={36} className="rounded-lg" />
+        <div>
+          <p className="font-bold text-gray-800 text-sm leading-tight">PMTS Panel</p>
+          <p className="text-xs text-gray-400">Admin</p>
         </div>
       </div>
-    </nav>
+
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Menú</p>
+        {navLinks.map((link, i) => (
+          <SidebarLink
+            key={i}
+            href={link.href}
+            label={link.name}
+            icon={routeIcons[link.name.toLowerCase()]}
+            onClick={onNavigate}
+          />
+        ))}
+      </nav>
+
+      {/* User footer */}
+      <div className="border-t border-gray-100 px-3 py-4 space-y-3">
+        <div className="flex items-center gap-3 px-2">
+          <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-800 truncate">{profile?.username || 'Usuario'}</p>
+            <span className={`inline-block text-xs px-1.5 py-0.5 rounded font-medium ${roleColors[role]}`}>
+              {roleLabels[role] || role}
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={() => logout()}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+        >
+          <LogOut className="h-4 w-4" />
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* ── DESKTOP: sidebar fija ── */}
+      <aside className="hidden md:flex flex-col fixed top-0 left-0 h-screen w-56 bg-white border-r border-gray-200 z-30">
+        <SidebarContent />
+      </aside>
+
+      {/* ── MOBILE: top bar ── */}
+      <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 z-30 flex items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <img src={Images?.pmts || "#"} alt="PMTS" width={28} height={28} className="rounded-md" />
+          <span className="font-bold text-gray-800 text-sm">PMTS Panel</span>
+        </div>
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      </header>
+
+      {/* ── MOBILE: drawer ── */}
+      <div
+        className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setMobileOpen(false)}
+      >
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+      <div className={`md:hidden fixed top-0 left-0 h-screen w-72 bg-white z-50 shadow-2xl transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="absolute top-4 right-4">
+          <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <SidebarContent onNavigate={() => setMobileOpen(false)} />
+      </div>
+    </>
   );
 };
 

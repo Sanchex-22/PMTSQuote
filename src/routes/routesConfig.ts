@@ -16,7 +16,7 @@ const routesConfig = [
   {
     name: "users",
     href: "/users/list",
-    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    roles: [authRoles.super_admin, authRoles.admin], // moderador NO puede gestionar usuarios
     subroutes: [
       { name: "Usuarios", href: "/users/list" },
     ]
